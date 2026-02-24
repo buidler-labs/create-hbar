@@ -31,8 +31,8 @@ const args = (...flags: string[]) => ["node", "create-hbar", ...flags];
 
 /** Captures process.exit calls without actually exiting. */
 function mockProcessExit() {
-  return vi.spyOn(process, "exit").mockImplementation((_code?: number | string) => {
-    throw new Error(`process.exit(${_code})`);
+  return vi.spyOn(process, "exit").mockImplementation((code?: number | string | null) => {
+    throw new Error(`process.exit(${code})`);
   }) as unknown as ReturnType<typeof vi.spyOn>;
 }
 
