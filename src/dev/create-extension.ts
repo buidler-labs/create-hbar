@@ -1,9 +1,8 @@
-import arg from "arg";
+import { Command } from "commander";
 import path from "path";
 import fs from "fs";
-import { promisify } from "util";
 import { execa } from "execa";
-import ncp from "ncp";
+import fse from "fs-extra";
 import { fileURLToPath } from "url";
 import { BASE_DIR, SOLIDITY_FRAMEWORKS, SOLIDITY_FRAMEWORKS_DIR } from "../utils/consts";
 import chalk from "chalk";
@@ -23,20 +22,21 @@ const prettyLog = {
   error: (message: string, indent = 0) => console.log(chalk.red(`${"  ".repeat(indent)}✖ ${message}`)),
 };
 
-const ncpPromise = promisify(ncp);
-
 const currentFileUrl = import.meta.url;
 const templateDirectory = path.resolve(decodeURI(fileURLToPath(currentFileUrl)), "../../../templates");
 
 const getParsedArgs = (rawArgs: string[]) => {
-  const args = arg(
-    {
-      "--from-commit": String,
-    },
-    { argv: rawArgs.slice(2) },
-  );
-  const projectPath = args._[0];
-  const fromCommit = args["--from-commit"];
+  const program = new Command()
+    .argument("<projectPath>", "Path to the project")
+    .option("--from-commit <commit>", "Base commit to diff from")
+    .allowUnknownOption()
+    .exitOverride();
+
+  program.parse(rawArgs);
+
+  const projectPath = program.args[0];
+  const fromCommit = program.opts<{ fromCommit?: string }>().fromCommit;
+
   if (!projectPath) {
     throw new Error("Project path is required");
   }
@@ -231,7 +231,7 @@ const copyChanges = async (
     }
 
     await createDirectories(file, projectName);
-    await ncpPromise(sourcePath, destPath);
+    await fse.copy(sourcePath, destPath);
     prettyLog.success(`Copied: ${file}`, 2);
     console.log("\n");
   }

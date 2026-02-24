@@ -4,9 +4,8 @@ import { findFilesRecursiveSync } from "../utils/find-files-recursively";
 import { mergePackageJson } from "../utils/merge-package-json";
 import fs from "fs";
 import { pathToFileURL } from "url";
-import ncp from "ncp";
+import fse from "fs-extra";
 import path from "path";
-import { promisify } from "util";
 import link from "../utils/link";
 import { getArgumentFromExternalExtensionOption } from "../utils/external-extensions";
 import {
@@ -19,8 +18,19 @@ import {
 
 const EXTERNAL_EXTENSION_TMP_DIR = "tmp-external-extension";
 
-const copy = promisify(ncp);
-let copyOrLink = copy;
+type CopyFn = (
+  src: string,
+  dest: string,
+  options?: { clobber?: boolean; filter?: (src: string) => boolean },
+) => Promise<void>;
+
+const copy: CopyFn = (src, dest, options) =>
+  fse.copy(src, dest, {
+    overwrite: options?.clobber ?? true,
+    filter: options?.filter,
+  });
+
+let copyOrLink: CopyFn = copy;
 
 const isTemplateRegex = /([^/\\]*?)\.template\./;
 const isPackageJsonRegex = /package\.json/;
@@ -37,7 +47,7 @@ const getSolidityFrameworkPath = (solidityFramework: SolidityFramework, template
 const copyBaseFiles = async (basePath: string, targetDir: string, { dev: isDev }: Options) => {
   await copyOrLink(basePath, targetDir, {
     clobber: false,
-    filter: fileName => {
+    filter: (fileName: string) => {
       const isTemplate = isTemplateRegex.test(fileName);
 
       const isYarnLock = isYarnLockRegex.test(fileName);
@@ -92,7 +102,7 @@ const copyExtensionFiles = async (
   // copy (or link if dev) root files
   await copyOrLink(extensionPath, path.join(targetDir), {
     clobber: false,
-    filter: path => {
+    filter: (path: string) => {
       const isConfig = isConfigRegex.test(path);
       const isArgs = isArgsRegex.test(path);
       const isSolidityFrameworkFolder = isSolidityFrameworkFolderRegex.test(path) && fs.lstatSync(path).isDirectory();
@@ -115,7 +125,7 @@ const copyExtensionFiles = async (
     // copy extension packages files
     await copyOrLink(extensionPackagesPath, path.join(targetDir, "packages"), {
       clobber: false,
-      filter: path => {
+      filter: (path: string) => {
         const isArgs = isArgsRegex.test(path);
         const isTemplate = isTemplateRegex.test(path);
         const isPackageJson = isPackageJsonRegex.test(path);
