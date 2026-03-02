@@ -7,6 +7,7 @@ import {
 } from "./tasks";
 import type { Options } from "./types";
 import { renderOutroMessage } from "./utils/render-outro-message";
+import { getTemplateDirectory } from "./utils/get-template-directory";
 import chalk from "chalk";
 import { Listr } from "listr2";
 import path from "path";
@@ -18,9 +19,7 @@ export async function createProject(options: Options) {
   console.log(`\n`);
 
   const currentFileUrl = import.meta.url;
-
-  const templateDirectory = path.resolve(decodeURI(fileURLToPath(currentFileUrl)), "../../templates");
-
+  const localTemplatesPath = path.resolve(decodeURI(fileURLToPath(currentFileUrl)), "../../templates");
   const targetDirectory = path.resolve(process.cwd(), options.project);
 
   const tasks = new Listr(
@@ -33,7 +32,14 @@ export async function createProject(options: Options) {
         title: `🚀 Creating a new Scaffold-ETH 2 app in ${chalk.green.bold(
           options.project,
         )}${options.externalExtension ? ` with the ${chalk.green.bold(options.dev ? options.externalExtension : getArgumentFromExternalExtensionOption(options.externalExtension))} extension` : ""}`,
-        task: () => copyTemplateFiles(options, templateDirectory, targetDirectory),
+        task: async () => {
+          const { templateDir, cleanup } = await getTemplateDirectory(options, localTemplatesPath);
+          try {
+            await copyTemplateFiles(options, templateDir, targetDirectory);
+          } finally {
+            await cleanup();
+          }
+        },
       },
       {
         title: `📦 Installing dependencies with ${options.packageManager}, this could take a while`,

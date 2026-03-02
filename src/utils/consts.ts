@@ -1,3 +1,6 @@
+/** Default template fetched when not using local templates or a community template. */
+export const DEFAULT_TEMPLATE_REPO = "buidler-labs/scaffold-eth-2#dev";
+
 export const BASE_DIR = "base";
 export const SOLIDITY_FRAMEWORKS_DIR = "solidity-frameworks";
 /**
@@ -49,7 +52,7 @@ export const SOLIDITY_FRAMEWORK_OPTIONS = [
 
 /** Wallet connector (WalletConnect only). */
 export const WALLETS = [
-  { value: "walletconnect", label: "WalletConnect v2", hint: "via @hashgraph/hedera-wallet-connect" },
+  { value: "rainbowkit", label: "Rainbowkit with burner wallet", hint: "via @rainbow-me/rainbowkit" },
 ] as const;
 
 /** Target Hedera network options (testnet and mainnet only). */
@@ -83,7 +86,7 @@ export const DEFAULT_OPTIONS = {
   project: "my-hedera-dapp",
   template: "blank",
   frontend: "nextjs-app",
-  wallet: ["walletconnect"],
+  wallet: ["rainbowkit"],
   network: "testnet",
   packageManager: "npm",
   install: true,

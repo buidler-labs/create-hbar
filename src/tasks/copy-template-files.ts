@@ -17,6 +17,13 @@ import {
   EXAMPLE_CONTRACTS_DIR,
   GLOBAL_ARGS_DEFAULTS,
 } from "../utils/consts";
+
+/** True when template is scaffold-eth-2 style (packages/ at root, no base/). */
+function isScaffoldEth2Layout(templateDir: string): boolean {
+  const packagesPath = path.join(templateDir, "packages");
+  const basePath = path.join(templateDir, BASE_DIR);
+  return fs.existsSync(packagesPath) && fs.statSync(packagesPath).isDirectory() && !fs.existsSync(basePath);
+}
 import { applyRenameMap } from "./apply-rename-map";
 import { generateEnvExample } from "./generate-env-example";
 
@@ -386,6 +393,42 @@ function processTemplateManifest(projectDir: string, projectName: string): void 
   fs.unlinkSync(manifestPath);
 }
 
+/**
+ * Copy from a scaffold-eth-2 layout (root + packages/hardhat|foundry|nextjs).
+ * Copies root files (excluding .git, node_modules, packages) and selected packages.
+ */
+async function copyScaffoldEth2Template(options: Options, templateDir: string, targetDir: string): Promise<void> {
+  const rootFilter = (src: string) => {
+    const name = path.basename(src);
+    if (name === ".git" || name === "node_modules" || name === "packages") return false;
+    return true;
+  };
+  await fse.copy(templateDir, targetDir, { overwrite: true, filter: rootFilter });
+
+  const packagesDir = path.join(templateDir, "packages");
+  if (!fs.existsSync(packagesDir)) return;
+
+  const toCopy: string[] = [];
+  if (options.solidityFramework) {
+    const pkgPath = path.join(packagesDir, options.solidityFramework);
+    if (fs.existsSync(pkgPath)) toCopy.push(options.solidityFramework);
+  }
+  if (options.frontend === "nextjs-app") {
+    if (fs.existsSync(path.join(packagesDir, "nextjs"))) toCopy.push("nextjs");
+  }
+
+  await fs.promises.mkdir(path.join(targetDir, "packages"), { recursive: true });
+  for (const name of toCopy) {
+    const src = path.join(packagesDir, name);
+    const dest = path.join(targetDir, "packages", name);
+    await fse.copy(src, dest, { overwrite: true });
+  }
+
+  processTemplateManifest(targetDir, options.project);
+  await execa("git", ["init"], { cwd: targetDir });
+  await execa("git", ["checkout", "-b", "main"], { cwd: targetDir });
+}
+
 export async function copyTemplateFiles(options: Options, templateDir: string, targetDir: string) {
   const template = options.template as string;
   const isCommunityTemplate = template.includes("/");
@@ -406,6 +449,11 @@ export async function copyTemplateFiles(options: Options, templateDir: string, t
     processTemplateManifest(targetDir, options.project);
     await execa("git", ["init"], { cwd: targetDir });
     await execa("git", ["checkout", "-b", "main"], { cwd: targetDir });
+    return;
+  }
+
+  if (isScaffoldEth2Layout(templateDir)) {
+    await copyScaffoldEth2Template(options, templateDir, targetDir);
     return;
   }
 

@@ -20,7 +20,7 @@ export type Frontend = "nextjs-app";
 export type SolidityFramework = "hardhat" | "foundry";
 
 /** Wallet connector (WalletConnect only). */
-export type Wallet = "walletconnect";
+export type Wallet = "rainbowkit";
 
 /** Dev-mode extension name (a local directory name under externalExtensions/). */
 export type ExternalExtensionNameDev = string;
