@@ -131,23 +131,23 @@ node /path/to/create-hbar/bin/create-hbar.js --yes --skip-install my-hedera-dapp
 
 ## CLI options
 
-| Option                                                     | Description                                                                      |
-| ---------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| `[project-name]`                                           | Project directory name (or use `--destination`)                                  |
-| `-d, --destination <path>`                                 | Output path instead of positional name                                           |
-| `-t, --template <key>`                                     | `blank` \| `hts-fungible` \| `hts-nft` \| `hcs-dao` \| `defi-swap` or `org/repo` |
-| `-f, --frontend <fw>`                                      | `nextjs-app` \| `nextjs-pages` \| `vite-react` \| `none`                         |
-| `-s, --solidity-framework <fw>`                            | `foundry` \| `hardhat` \| `none`                                                 |
-| `-w, --wallet <list>`                                      | Comma-separated: `walletconnect`, `metamask`                                     |
-| `--network <network>`                                      | `testnet` \| `mainnet` \| `local`                                                |
-| `--use-npm` \| `--use-pnpm` \| `--use-yarn` \| `--use-bun` | Force package manager                                                            |
-| `--skip-install`                                           | Don’t run install after scaffolding                                              |
-| `-y, --yes`                                                | Use defaults for all prompts (non-interactive)                                   |
-| `--ci`                                                     | CI mode (implies `--yes`, structured output)                                     |
-| `-e, --extension <name>`                                   | Community extension (e.g. `owner/repo`)                                          |
-| `--dev`                                                    | Dev mode: use local `externalExtensions/` symlinks                               |
-| `-h, --help`                                               | Show help                                                                        |
-| `-v, --version`                                            | Show version                                                                     |
+| Option                          | Description                                        |
+| ------------------------------- | -------------------------------------------------- | -------------- | ------------ | --------------------- | ------------------------- |
+| `[project-name]`                | Project directory name (or use `--destination`)    |
+| `-d, --destination <path>`      | Output path instead of positional name             |
+| `-t, --template <key>`          | `blank`                                            | `hts-fungible` | `hts-nft`    | `hcs-dao`             | `defi-swap` or `org/repo` |
+| `-f, --frontend <fw>`           | `nextjs-app`                                       | `nextjs-pages` | `vite-react` | `none`                |
+| `-s, --solidity-framework <fw>` | `foundry`                                          | `hardhat`      | `none`       |
+| `-w, --wallet <list>`           | Comma-separated: `walletconnect`, `metamask`       |
+| `--network <network>`           | `testnet`                                          | `mainnet`      | `local`      |
+| `--use-npm`                     | `--use-pnpm`                                       | `--use-yarn`   | `--use-bun`  | Force package manager |
+| `--skip-install`                | Don’t run install after scaffolding                |
+| `-y, --yes`                     | Use defaults for all prompts (non-interactive)     |
+| `--ci`                          | CI mode (implies `--yes`, structured output)       |
+| `-e, --extension <name>`        | Community extension (e.g. `owner/repo`)            |
+| `--dev`                         | Dev mode: use local `externalExtensions/` symlinks |
+| `-h, --help`                    | Show help                                          |
+| `-v, --version`                 | Show version                                       |
 
 ---
 

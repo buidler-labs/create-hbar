@@ -6,6 +6,9 @@ const contents = () =>
 # We provide default values so developers can start prototyping out of the box,
 # but we recommend getting your own API Keys for Production Apps.
 
+# Hedera JSON-RPC endpoint (testnet default; use mainnet.hashio.io for mainnet)
+HEDERA_RPC_URL=https://testnet.hashio.io/api
+
 # Alchemy rpc URL is used while deploying the contracts to some testnets/mainnets, checkout \`foundry.toml\` for it's use.
 ALCHEMY_API_KEY=oKxs-03sij-U_N0iOlrSsZFr29-IqbuF
 

@@ -394,6 +394,82 @@ function processTemplateManifest(projectDir: string, projectName: string): void 
 }
 
 /**
+ * Rewrites the root package.json in targetDir so it only references the
+ * selected solidity framework's workspaces and scripts.
+ *
+ * The SE2 template root package.json contains entries for BOTH hardhat and
+ * foundry (e.g. `"packages/hardhat"` in workspaces, `hardhat:*` scripts).
+ * When only one framework is selected, the other framework's workspace
+ * path and its prefixed scripts must be removed so `yarn format` (and
+ * similar commands) don't error with "Workspace not found".
+ */
+function filterRootPackageJson(targetDir: string, selectedFramework: string | null | undefined): void {
+  const pkgPath = path.join(targetDir, "package.json");
+  if (!fs.existsSync(pkgPath)) return;
+
+  const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8")) as Record<string, any>;
+
+  const unselected = [SOLIDITY_FRAMEWORKS.FOUNDRY, SOLIDITY_FRAMEWORKS.HARDHAT].filter(sf => sf !== selectedFramework);
+
+  // Remove unselected framework workspace entries
+  if (pkg.workspaces) {
+    const wsList: string[] = Array.isArray(pkg.workspaces)
+      ? pkg.workspaces
+      : Array.isArray(pkg.workspaces?.packages)
+        ? pkg.workspaces.packages
+        : [];
+
+    const filteredWs = wsList.filter(ws => !unselected.some(sf => ws.includes(sf)));
+
+    if (Array.isArray(pkg.workspaces)) {
+      pkg.workspaces = filteredWs;
+    } else if (pkg.workspaces?.packages) {
+      pkg.workspaces.packages = filteredWs;
+    }
+  }
+
+  // Remove scripts that reference unselected frameworks
+  if (pkg.scripts) {
+    for (const key of Object.keys(pkg.scripts)) {
+      const isUnselectedPrefix = unselected.some(sf => key === sf || key.startsWith(`${sf}:`));
+      if (isUnselectedPrefix) {
+        delete pkg.scripts[key];
+      }
+    }
+
+    // Rewrite the top-level convenience scripts that delegate to the unselected framework.
+    // E.g. `"chain": "yarn hardhat:chain"` must become `"chain": "yarn foundry:chain"` when
+    // foundry is selected, and vice-versa.
+    if (selectedFramework) {
+      for (const key of Object.keys(pkg.scripts)) {
+        for (const sf of unselected) {
+          const delegatePrefix = `yarn ${sf}:`;
+          if (typeof pkg.scripts[key] === "string" && pkg.scripts[key].startsWith(delegatePrefix)) {
+            const subCommand = (pkg.scripts[key] as string).slice(delegatePrefix.length);
+            pkg.scripts[key] = `yarn ${selectedFramework}:${subCommand}`;
+          }
+        }
+      }
+
+      // Also fix `format` / `lint` / `test` which may include `&& yarn <sf>:format` combos
+      for (const key of Object.keys(pkg.scripts)) {
+        if (typeof pkg.scripts[key] === "string") {
+          for (const sf of unselected) {
+            // Remove "&& yarn <unselected>:cmd" or "yarn <unselected>:cmd &&" fragments
+            pkg.scripts[key] = (pkg.scripts[key] as string)
+              .replace(new RegExp(`\\s*&&\\s*yarn ${sf}:[^\\s&]+`, "g"), "")
+              .replace(new RegExp(`yarn ${sf}:[^\\s&]+\\s*&&\\s*`, "g"), "")
+              .trim();
+          }
+        }
+      }
+    }
+  }
+
+  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2), "utf8");
+}
+
+/**
  * Copy from a scaffold-eth-2 layout (root + packages/hardhat|foundry|nextjs).
  * Copies root files (excluding .git, node_modules, packages) and selected packages.
  */
@@ -424,12 +500,44 @@ async function copyScaffoldEth2Template(options: Options, templateDir: string, t
     await fse.copy(src, dest, { overwrite: true });
   }
 
+  // Remove workspace entries and scripts that belong to the unselected framework
+  filterRootPackageJson(targetDir, options.solidityFramework);
+
   processTemplateManifest(targetDir, options.project);
   await execa("git", ["init"], { cwd: targetDir });
   await execa("git", ["checkout", "-b", "main"], { cwd: targetDir });
 }
 
-export async function copyTemplateFiles(options: Options, templateDir: string, targetDir: string) {
+/**
+ * Overlay the local Hedera Foundry package and process its templates so default-template + Foundry gets Hedera config and contracts.
+ */
+async function overlayHederaFoundryPackage(
+  localTemplatesPath: string,
+  targetDir: string,
+  options: Options,
+): Promise<void> {
+  const localFoundryRoot = path.join(localTemplatesPath, SOLIDITY_FRAMEWORKS_DIR, SOLIDITY_FRAMEWORKS.FOUNDRY);
+  const localFoundryPackage = path.join(localFoundryRoot, "packages", SOLIDITY_FRAMEWORKS.FOUNDRY);
+  if (!fs.existsSync(localFoundryPackage)) return;
+
+  const destFoundry = path.join(targetDir, "packages", SOLIDITY_FRAMEWORKS.FOUNDRY);
+  await fs.promises.mkdir(destFoundry, { recursive: true });
+  await fse.copy(localFoundryPackage, destFoundry, { overwrite: true });
+
+  const emptyDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), "create-hbar-empty-"));
+  try {
+    await processTemplatedFiles(options, emptyDir, localFoundryRoot, null, targetDir);
+  } finally {
+    await fs.promises.rm(emptyDir, { recursive: true, force: true });
+  }
+}
+
+export async function copyTemplateFiles(
+  options: Options,
+  templateDir: string,
+  targetDir: string,
+  localTemplatesPath?: string,
+) {
   const template = options.template as string;
   const isCommunityTemplate = template.includes("/");
 
@@ -454,6 +562,13 @@ export async function copyTemplateFiles(options: Options, templateDir: string, t
 
   if (isScaffoldEth2Layout(templateDir)) {
     await copyScaffoldEth2Template(options, templateDir, targetDir);
+    if (
+      options.solidityFramework === SOLIDITY_FRAMEWORKS.FOUNDRY &&
+      localTemplatesPath &&
+      fs.existsSync(path.join(localTemplatesPath, SOLIDITY_FRAMEWORKS_DIR, SOLIDITY_FRAMEWORKS.FOUNDRY))
+    ) {
+      await overlayHederaFoundryPackage(localTemplatesPath, targetDir, options);
+    }
     return;
   }
 

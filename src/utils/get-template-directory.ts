@@ -14,19 +14,14 @@ export type TemplateDirectoryResult = {
 /**
  * Resolves the template directory for scaffolding.
  * - In dev mode: uses local templates/.
- * - Community template (options.template contains "/"): not used here; copyTemplateFiles fetches it.
  * - Otherwise: fetches DEFAULT_TEMPLATE_REPO (e.g. buidler-labs/scaffold-eth-2#dev) to a temp dir.
+ *   (Community templates are fetched separately in copyTemplateFiles; this provides the base layer.)
  */
 export async function getTemplateDirectory(
   options: Options,
   localTemplatesPath: string,
 ): Promise<TemplateDirectoryResult> {
   if (options.dev) {
-    return { templateDir: localTemplatesPath, cleanup: async () => {} };
-  }
-
-  const isCommunityTemplate = (options.template as string)?.includes("/");
-  if (isCommunityTemplate) {
     return { templateDir: localTemplatesPath, cleanup: async () => {} };
   }
 

@@ -35,6 +35,11 @@ const defaultConfig = {
       accounts: ["$$deployerPrivateKey$$"],
       chainId: 296,
     },
+    hedera_testnet: {
+      url: "https://testnet.hashio.io/api",
+      accounts: ["$$deployerPrivateKey$$"],
+      chainId: 296,
+    },
     hederaMainnet: {
       url: "https://mainnet.hashio.io/api",
       accounts: ["$$deployerPrivateKey$$"],

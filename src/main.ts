@@ -35,7 +35,7 @@ export async function createProject(options: Options) {
         task: async () => {
           const { templateDir, cleanup } = await getTemplateDirectory(options, localTemplatesPath);
           try {
-            await copyTemplateFiles(options, templateDir, targetDirectory);
+            await copyTemplateFiles(options, templateDir, targetDirectory, localTemplatesPath);
           } finally {
             await cleanup();
           }

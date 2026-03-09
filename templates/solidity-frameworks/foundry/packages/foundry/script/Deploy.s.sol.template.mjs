@@ -26,9 +26,12 @@ contract DeployScript is ScaffoldETHDeploy {
 }`;
 
 export default withDefaults(content, {
-  preContent: `import { DeployYourContract } from "./DeployYourContract.s.sol";`,
+  preContent: `import { DeployHederaToken } from "./DeployHederaToken.s.sol";
+import { DeployHtsTokenCreator } from "./DeployHtsTokenCreator.s.sol";`,
   deploymentsLogic: `
-    DeployYourContract deployYourContract = new DeployYourContract();
-    deployYourContract.run();
+    DeployHederaToken deployHederaToken = new DeployHederaToken();
+    deployHederaToken.run();
+    DeployHtsTokenCreator deployHtsTokenCreator = new DeployHtsTokenCreator();
+    deployHtsTokenCreator.run();
   `,
 });

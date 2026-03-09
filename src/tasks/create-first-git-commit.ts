@@ -1,6 +1,7 @@
 import { execa } from "execa";
 import { Options } from "../types";
 import path from "path";
+import fs from "fs";
 import { SOLIDITY_FRAMEWORKS } from "../utils/consts";
 import packageJson from "../../package.json";
 
@@ -16,7 +17,19 @@ export async function createFirstGitCommit(targetDir: string, options: Options) 
 
     if (options.solidityFramework === SOLIDITY_FRAMEWORKS.FOUNDRY) {
       const foundryWorkSpacePath = path.resolve(targetDir, "packages", SOLIDITY_FRAMEWORKS.FOUNDRY);
-      // forge install foundry libraries
+      const libDir = path.join(foundryWorkSpacePath, "lib");
+
+      // Remove any pre-existing lib directories copied from the template so that
+      // `forge install` (which adds git submodules) doesn't fail with
+      // "already exists and is not a valid git repo".
+      if (fs.existsSync(libDir)) {
+        await fs.promises.rm(libDir, { recursive: true, force: true });
+        // Stage the removal so the initial commit doesn't reference the old files
+        await execa("git", ["add", "-A"], { cwd: targetDir });
+        await execa("git", ["commit", "--amend", "--no-edit", "--no-verify"], { cwd: targetDir });
+      }
+
+      // forge install foundry libraries as git submodules
       await execa("forge", ["install", ...foundryLibraries], { cwd: foundryWorkSpacePath });
       await execa("git", ["add", "-A"], { cwd: targetDir });
       await execa("git", ["commit", "--amend", "--no-edit"], { cwd: targetDir });
