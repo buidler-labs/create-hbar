@@ -7,9 +7,9 @@ import {
   NETWORKS,
   PACKAGE_MANAGERS,
   SOLIDITY_FRAMEWORK_OPTIONS,
-  TEMPLATES,
   WALLETS,
 } from "./consts";
+import { fetchAvailableTemplates } from "./fetch-available-templates";
 import { detectPackageManager } from "./parse-arguments-into-options";
 import { validateNpmName } from "./validate-name";
 
@@ -36,12 +36,16 @@ export async function promptForMissingOptions(rawOptions: RawOptions): Promise<O
         });
       },
 
-      template: () => {
-        if (rawOptions.template != null) return Promise.resolve(rawOptions.template);
+      template: async () => {
+        if (rawOptions.template != null) return rawOptions.template;
+        const templateOptions = await fetchAvailableTemplates();
+        const initialValue = templateOptions.some(t => t.value === DEFAULT_OPTIONS.template)
+          ? DEFAULT_OPTIONS.template
+          : templateOptions[0]?.value;
         return p.select({
           message: "Which starter template?",
-          options: TEMPLATES.map(t => ({ value: t.value, label: t.label, hint: t.hint })),
-          initialValue: DEFAULT_OPTIONS.template,
+          options: templateOptions.map(t => ({ value: t.value, label: t.label, ...(t.hint && { hint: t.hint }) })),
+          initialValue: initialValue ?? DEFAULT_OPTIONS.template,
         });
       },
 

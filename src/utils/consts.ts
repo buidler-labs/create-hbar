@@ -1,6 +1,11 @@
 /** Default template fetched when not using local templates or a community template. */
 export const DEFAULT_TEMPLATE_REPO = "buidler-labs/scaffold-eth-2#dev";
 
+/** Repo (owner/repo) used to fetch available template branches. Branches must match prefix. */
+export const TEMPLATE_REPO = "buidler-labs/scaffold-eth-2";
+/** Branch name prefix for template branches, e.g. "templates/blank", "templates/dex". */
+export const TEMPLATE_BRANCH_PREFIX = "templates/";
+
 export const BASE_DIR = "base";
 export const SOLIDITY_FRAMEWORKS_DIR = "solidity-frameworks";
 /**
@@ -27,7 +32,7 @@ export const GLOBAL_ARGS_DEFAULTS = {
   solidityFramework: "",
 };
 
-/** Starter template options shown in the interactive select prompt. */
+/** Starter template options shown in the interactive select prompt (used when dynamic fetch fails). */
 export const TEMPLATES = [
   { value: "blank", label: "Blank Starter", hint: "minimal setup, no example contracts" },
   { value: "hts-fungible", label: "Fungible Token (HTS)", hint: "deploy & manage HTS tokens" },
@@ -35,6 +40,9 @@ export const TEMPLATES = [
   { value: "hcs-dao", label: "DAO Governance", hint: "on-chain voting via Hedera Consensus Service" },
   { value: "defi-swap", label: "DeFi Swap", hint: "AMM-style token exchange" },
 ] as const;
+
+/** Fallback when fetching template branches fails (e.g. offline). Same shape as TEMPLATES. */
+export const TEMPLATES_FALLBACK = TEMPLATES;
 
 /** Frontend framework (Next.js only). */
 export const FRONTENDS = [{ value: "nextjs-app", label: "Next.js (App Router)" }] as const;

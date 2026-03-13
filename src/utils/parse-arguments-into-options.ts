@@ -15,7 +15,6 @@ import {
   SOLIDITY_FRAMEWORKS,
   DEFAULT_OPTIONS,
   EXIT_CODES,
-  TEMPLATES,
   FRONTENDS,
   SOLIDITY_FRAMEWORK_OPTIONS,
   WALLETS,
@@ -32,7 +31,6 @@ import * as p from "@clack/prompts";
 // Extracting .value from each option array means adding a new entry to consts.ts
 // automatically makes it valid here — no second edit needed.
 
-const VALID_TEMPLATES = TEMPLATES.map(t => t.value);
 const VALID_FRONTENDS = FRONTENDS.map(f => f.value) as readonly Frontend[];
 const VALID_SOLIDITY_FRAMEWORKS = SOLIDITY_FRAMEWORK_OPTIONS.map(s => s.value) as readonly (
   | SolidityFramework
@@ -133,12 +131,18 @@ export async function parseArgumentsIntoOptions(
     }
   }
 
-  // ── Validate enum flags ───────────────────────────────────────────────────
-  const template = opts.template
-    ? (opts.template as string).includes("/")
-      ? (opts.template as string) // community template: org/repo — pass through
-      : validateEnum(opts.template as string, VALID_TEMPLATES, "template")
-    : null;
+  // ── Template: community (org/repo) pass-through, or built-in name (any templates/* branch name) ──
+  let template: string | null = null;
+  if (opts.template) {
+    const raw = (opts.template as string).trim();
+    if (raw.includes("/")) {
+      template = raw; // community template: org/repo or org/repo#branch
+    } else if (raw.length > 0) {
+      template = raw; // built-in: resolved to repo#templates/<name> later; no hardcoded list
+    } else {
+      exitWithBadArgs("Template name cannot be empty.");
+    }
+  }
 
   const frontend = opts.frontend ? validateEnum(opts.frontend as string, VALID_FRONTENDS, "frontend") : null;
 

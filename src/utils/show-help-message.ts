@@ -12,7 +12,7 @@ export const showHelpMessage = () => {
 
   ${chalk.bold("Options:")}
     ${chalk.gray("-d, --destination <path>")}        Output directory (alternative to positional arg)
-    ${chalk.gray("-t, --template <template>")}       Starter template key or GitHub org/repo
+    ${chalk.gray("-t, --template <template>")}       Starter template (or omit and choose in the flow)
                                        ${chalk.dim("blank | hts-fungible | hts-nft | hcs-dao | defi-swap | org/repo")}
     ${chalk.gray("-f, --frontend <framework>")}      Frontend framework
                                        ${chalk.dim("nextjs-app")}
