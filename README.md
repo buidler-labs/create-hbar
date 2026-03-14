@@ -2,17 +2,17 @@
 
 **Scaffold Hedera dApp projects from the command line.** Pick a template, frontend, Solidity framework, and wallet—then get a runnable project in one step.
 
-Create-hbar is an interactive CLI (like `create-next-app` or `create-react-app`) for the [Hedera](https://hedera.com) ecosystem. It generates a monorepo with contracts (Hardhat or Foundry), frontend (Next.js or Vite), and Hedera network configuration (testnet, mainnet, or local node) so you can start building on Hedera quickly.
+Create-hbar is an interactive CLI (like `create-next-app` or `create-react-app`) for the [Hedera](https://hedera.com) ecosystem. It fetches a **template from a Git branch** (via [giget](https://github.com/unjs/giget)), then generates a monorepo with contracts (Hardhat or Foundry), frontend (Next.js), and Hedera network configuration. There are **no embedded templates** in the CLI repo and **no extension system**—templates are branches in the template repo (e.g. `templates/blank-template`).
 
 ---
 
 ## Features
 
-- **Starter templates** — Blank, HTS fungible, HTS NFT, HCS DAO, or DeFi swap
-- **Frontend options** — Next.js (App or Pages Router) or Vite + React
-- **Solidity** — Hardhat or Foundry (or contracts-only)
-- **Wallets** — WalletConnect v2 or MetaMask, wired for Hedera
-- **Networks** — Testnet, Mainnet, or local node (Hashio RPC + Mirror Node URLs)
+- **Starter templates** — Blank, HTS fungible, HTS NFT, HCS DAO, or DeFi swap (template = branch name; list from GitHub API with fallback)
+- **Frontend** — Next.js (App Router)
+- **Solidity** — Hardhat or Foundry (or none)
+- **Wallets** — RainbowKit wired for Hedera
+- **Networks** — Testnet or Mainnet (Hashio RPC + Mirror Node URLs)
 - **Non-interactive** — Use `--yes` or full flags for CI and scripts
 
 ---
@@ -114,7 +114,7 @@ node bin/create-hbar.js --yes --skip-install --solidity-framework none
 node bin/create-hbar.js --yes --skip-install --solidity-framework hardhat
 
 # Custom project name and template
-node bin/create-hbar.js my-hts-app --template hts-nft --frontend vite-react --skip-install
+node bin/create-hbar.js my-hts-app --template hts-nft --frontend nextjs-app --skip-install
 
 # See all options
 node bin/create-hbar.js --help
@@ -131,23 +131,21 @@ node /path/to/create-hbar/bin/create-hbar.js --yes --skip-install my-hedera-dapp
 
 ## CLI options
 
-| Option                          | Description                                        |
-| ------------------------------- | -------------------------------------------------- | -------------- | ------------ | --------------------- | ------------------------- |
-| `[project-name]`                | Project directory name (or use `--destination`)    |
-| `-d, --destination <path>`      | Output path instead of positional name             |
-| `-t, --template <key>`          | `blank`                                            | `hts-fungible` | `hts-nft`    | `hcs-dao`             | `defi-swap` or `org/repo` |
-| `-f, --frontend <fw>`           | `nextjs-app`                                       | `nextjs-pages` | `vite-react` | `none`                |
-| `-s, --solidity-framework <fw>` | `foundry`                                          | `hardhat`      | `none`       |
-| `-w, --wallet <list>`           | Comma-separated: `walletconnect`, `metamask`       |
-| `--network <network>`           | `testnet`                                          | `mainnet`      | `local`      |
-| `--use-npm`                     | `--use-pnpm`                                       | `--use-yarn`   | `--use-bun`  | Force package manager |
-| `--skip-install`                | Don’t run install after scaffolding                |
-| `-y, --yes`                     | Use defaults for all prompts (non-interactive)     |
-| `--ci`                          | CI mode (implies `--yes`, structured output)       |
-| `-e, --extension <name>`        | Community extension (e.g. `owner/repo`)            |
-| `--dev`                         | Dev mode: use local `externalExtensions/` symlinks |
-| `-h, --help`                    | Show help                                          |
-| `-v, --version`                 | Show version                                       |
+| Option                                                     | Description                                     |
+| ---------------------------------------------------------- | ----------------------------------------------- |
+| `[project-name]`                                           | Project directory name (or use `--destination`) |
+| `-d, --destination <path>`                                 | Output path instead of positional name          |
+| `-t, --template <key>`                                     | Built-in (`blank`, `hts-nft`, …) or `org/repo`  |
+| `-f, --frontend <fw>`                                      | `nextjs-app`                                    |
+| `-s, --solidity-framework <fw>`                            | `foundry` \| `hardhat` \| `none`                |
+| `-w, --wallet <list>`                                      | `rainbowkit`                                    |
+| `--network <network>`                                      | `testnet` \| `mainnet`                          |
+| `--use-npm` \| `--use-pnpm` \| `--use-yarn` \| `--use-bun` | Force package manager                           |
+| `--skip-install`                                           | Don’t run install after scaffolding             |
+| `-y, --yes`                                                | Use defaults for all prompts (non-interactive)  |
+| `--ci`                                                     | CI mode (implies `--yes`, structured output)    |
+| `-h, --help`                                               | Show help                                       |
+| `-v, --version`                                            | Show version                                    |
 
 ---
 
@@ -174,7 +172,7 @@ From the repo root after `yarn build`, you can run:
 | Default         | `node bin/create-hbar.js e2e-scenarios/default --yes --skip-install`                                                    | Scaffold + skip install               |
 | Solidity none   | `node bin/create-hbar.js e2e-scenarios/sol-none --yes --skip-install -s none`                                           | No "and submodules"                   |
 | Hardhat         | `node bin/create-hbar.js e2e-scenarios/sol-hardhat --yes --skip-install -s hardhat`                                     | `packages/hardhat` + `nextjs`         |
-| Custom flags    | `node bin/create-hbar.js e2e-scenarios/custom --yes --skip-install -t blank -f vite-react --network mainnet --use-pnpm` | Title shows "pnpm"                    |
+| Custom flags    | `node bin/create-hbar.js e2e-scenarios/custom --yes --skip-install -t blank -f nextjs-app --network mainnet --use-pnpm` | Title shows "pnpm"                    |
 | Install failure | `node bin/create-hbar.js e2e-scenarios/with-install --yes -s hardhat --use-npm`                                         | Exit code **5**, InstallError message |
 
 Output goes under `e2e-scenarios/` (gitignored).
@@ -191,13 +189,14 @@ create-hbar/
 │   ├── main.ts           # createProject task list
 │   ├── types.ts          # Shared types
 │   ├── utils/            # Prompts, parsing, validation, intro/outro
-│   └── tasks/            # Copy template, install, git, format
-├── templates/            # Base + solidity-frameworks (hardhat, foundry)
+│   └── tasks/            # Copy template (giget), install, git, format
 ├── tests/
 │   ├── unit/             # Unit tests (consts, types, parse-arguments)
 │   └── integration/      # Integration tests (prompts)
 └── dist/                 # Built output (generated by yarn build)
 ```
+
+Templates are **not** embedded: the CLI fetches them via giget from the template repo (branch names like `templates/blank-template`). See `contributors/TEMPLATES.md` for the flow.
 
 ---
 

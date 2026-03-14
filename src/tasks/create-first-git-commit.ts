@@ -8,6 +8,10 @@ import packageJson from "../../package.json";
 const foundryLibraries = ["foundry-rs/forge-std", "OpenZeppelin/openzeppelin-contracts", "gnsps/solidity-bytes-utils"];
 const createHbarVersion = packageJson.version;
 
+/**
+ * Stages all files, creates the initial commit (message: create-hbar branding),
+ * and when Foundry is selected runs forge install and amends the commit with lib submodules.
+ */
 export async function createFirstGitCommit(targetDir: string, options: Options) {
   try {
     await execa("git", ["add", "-A"], { cwd: targetDir });

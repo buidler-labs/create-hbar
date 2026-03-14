@@ -19,7 +19,7 @@ export const showHelpMessage = () => {
     ${chalk.gray("-s, --solidity-framework <fw>")}   Solidity / contract framework
                                        ${chalk.dim("foundry | hardhat | none")}
     ${chalk.gray("-w, --wallet <wallets>")}          Wallet connector
-                                       ${chalk.dim("walletconnect")}
+                                       ${chalk.dim("rainbowkit")}
     ${chalk.gray("--network <network>")}             Target Hedera network
                                        ${chalk.dim("testnet | mainnet")}
     ${chalk.gray("--use-npm")}                       Use npm as package manager
