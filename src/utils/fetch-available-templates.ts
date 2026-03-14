@@ -1,14 +1,18 @@
 import { TEMPLATE_BRANCH_PREFIX, TEMPLATE_REPO, TEMPLATES_FALLBACK } from "./consts";
 
+/** Branch name for the "blank" starter template (actual branch is blank-template). */
+const BLANK_TEMPLATE_BRANCH = "blank-template";
+
 /**
  * Resolves template to a giget spec (owner/repo#branch).
  * - If template contains "/", treat as community (org/repo or org/repo#branch).
- * - Otherwise use TEMPLATE_REPO and branch "templates/<template>".
+ * - Otherwise use TEMPLATE_REPO and branch "templates/<template>" (blank → templates/blank-template).
  */
 export function getTemplateSpec(template: string): string {
   if (template.includes("/")) return template;
   const prefix = TEMPLATE_BRANCH_PREFIX.endsWith("/") ? TEMPLATE_BRANCH_PREFIX : `${TEMPLATE_BRANCH_PREFIX}/`;
-  const branch = `${prefix}${template}`;
+  const branchSuffix = template === "blank" ? BLANK_TEMPLATE_BRANCH : template;
+  const branch = `${prefix}${branchSuffix}`;
   return `${TEMPLATE_REPO}#${branch}`;
 }
 

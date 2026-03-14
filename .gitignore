@@ -22,3 +22,6 @@ e2e-scenarios/
 
 # Generated scaffold output (local only)
 my-hedera-dapp/
+
+# Embedded templates (removed; use giget + remote repo)
+templates/

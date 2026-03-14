@@ -11,26 +11,12 @@ import {
   DEFAULT_OPTIONS,
   EXIT_CODES,
   HEDERA_NETWORKS,
-  BASE_DIR,
-  SOLIDITY_FRAMEWORKS_DIR,
-  EXAMPLE_CONTRACTS_DIR,
-  GLOBAL_ARGS_DEFAULTS,
 } from "../../src/utils/consts";
 
 describe("backward-compatible constants", () => {
   it("SOLIDITY_FRAMEWORKS retains the original object shape", () => {
     expect(SOLIDITY_FRAMEWORKS.HARDHAT).toBe("hardhat");
     expect(SOLIDITY_FRAMEWORKS.FOUNDRY).toBe("foundry");
-  });
-
-  it("directory name constants are unchanged", () => {
-    expect(BASE_DIR).toBe("base");
-    expect(SOLIDITY_FRAMEWORKS_DIR).toBe("solidity-frameworks");
-    expect(EXAMPLE_CONTRACTS_DIR).toBe("example-contracts");
-  });
-
-  it("GLOBAL_ARGS_DEFAULTS has solidityFramework empty string", () => {
-    expect(GLOBAL_ARGS_DEFAULTS.solidityFramework).toBe("");
   });
 });
 

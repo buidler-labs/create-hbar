@@ -1,36 +1,16 @@
-/** Default template fetched when not using local templates or a community template. */
-export const DEFAULT_TEMPLATE_REPO = "buidler-labs/scaffold-eth-2#dev";
-
 /** Repo (owner/repo) used to fetch available template branches. Branches must match prefix. */
 export const TEMPLATE_REPO = "buidler-labs/scaffold-eth-2";
-/** Branch name prefix for template branches, e.g. "templates/blank", "templates/dex". */
+/** Branch name prefix for template branches, e.g. "templates/blank-template", "templates/hts-nft". */
 export const TEMPLATE_BRANCH_PREFIX = "templates/";
-
-export const BASE_DIR = "base";
-export const SOLIDITY_FRAMEWORKS_DIR = "solidity-frameworks";
-/**
- * The templates/example-contracts directory has been removed; this constant
- * is retained so existing copy-template logic compiles without modification
- * until that path is replaced in a later step.
- */
-export const EXAMPLE_CONTRACTS_DIR = "example-contracts";
 
 /**
  * String constants for the two supported solidity frameworks.
- * Used throughout copy-template, extension, and validation logic.
+ * Used throughout copy-template and validation logic.
  */
 export const SOLIDITY_FRAMEWORKS = {
   HARDHAT: "hardhat",
   FOUNDRY: "foundry",
 } as const;
-
-/**
- * Default global template args injected during template file processing.
- * Used by processTemplatedFiles in copy-template-files.ts.
- */
-export const GLOBAL_ARGS_DEFAULTS = {
-  solidityFramework: "",
-};
 
 /** Starter template options shown in the interactive select prompt (used when dynamic fetch fails). */
 export const TEMPLATES = [
