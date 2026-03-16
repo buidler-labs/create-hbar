@@ -11,13 +11,18 @@ const createHbarVersion = packageJson.version;
 /**
  * Stages all files, creates the initial commit (message: create-hbar branding),
  * and when Foundry is selected runs forge install and amends the commit with lib submodules.
+ *
+ * We use --no-gpg-sign so that users with commit signing (e.g. SSH key with passphrase)
+ * are not prompted in this non-interactive context; the initial commit stays unsigned.
  */
 export async function createFirstGitCommit(targetDir: string, options: Options) {
   try {
     await execa("git", ["add", "-A"], { cwd: targetDir });
-    await execa("git", ["commit", "-m", `Initial commit with create-hbar @ ${createHbarVersion}`, "--no-verify"], {
-      cwd: targetDir,
-    });
+    await execa(
+      "git",
+      ["commit", "-m", `Initial commit with create-hbar @ ${createHbarVersion}`, "--no-verify", "--no-gpg-sign"],
+      { cwd: targetDir },
+    );
 
     if (options.solidityFramework === SOLIDITY_FRAMEWORKS.FOUNDRY) {
       const foundryWorkSpacePath = path.resolve(targetDir, "packages", SOLIDITY_FRAMEWORKS.FOUNDRY);
@@ -30,13 +35,13 @@ export async function createFirstGitCommit(targetDir: string, options: Options) 
         await fs.promises.rm(libDir, { recursive: true, force: true });
         // Stage the removal so the initial commit doesn't reference the old files
         await execa("git", ["add", "-A"], { cwd: targetDir });
-        await execa("git", ["commit", "--amend", "--no-edit", "--no-verify"], { cwd: targetDir });
+        await execa("git", ["commit", "--amend", "--no-edit", "--no-verify", "--no-gpg-sign"], { cwd: targetDir });
       }
 
       // forge install foundry libraries as git submodules
       await execa("forge", ["install", ...foundryLibraries], { cwd: foundryWorkSpacePath });
       await execa("git", ["add", "-A"], { cwd: targetDir });
-      await execa("git", ["commit", "--amend", "--no-edit"], { cwd: targetDir });
+      await execa("git", ["commit", "--amend", "--no-edit", "--no-gpg-sign"], { cwd: targetDir });
     }
   } catch (e: any) {
     // cast error as ExecaError to get stderr
