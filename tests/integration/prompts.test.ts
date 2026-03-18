@@ -200,7 +200,7 @@ describe("promptForMissingOptions", () => {
       solidityFramework: "foundry",
       wallet: ["rainbowkit"],
       network: "mainnet",
-      packageManager: "bun",
+      packageManager: "yarn",
       install: false,
     });
 
@@ -213,7 +213,7 @@ describe("promptForMissingOptions", () => {
       solidityFramework: "foundry",
       wallet: ["rainbowkit"],
       network: "mainnet",
-      packageManager: "bun",
+      packageManager: "yarn",
       install: false,
     });
 

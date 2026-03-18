@@ -54,7 +54,6 @@ export const PACKAGE_MANAGERS = [
   { value: "npm", label: "npm" },
   { value: "pnpm", label: "pnpm" },
   { value: "yarn", label: "yarn" },
-  { value: "bun", label: "bun" },
 ] as const;
 
 /** Hedera brand palette used for terminal output styling. */

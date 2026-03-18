@@ -3,7 +3,7 @@ import { z } from "zod";
 export type Args = string[];
 
 /** Supported package managers for the generated project. */
-export type PackageManager = "npm" | "pnpm" | "yarn" | "bun";
+export type PackageManager = "npm" | "pnpm" | "yarn";
 
 /** Hedera network targets. */
 export type Network = "testnet" | "mainnet";
@@ -79,7 +79,7 @@ export type TemplateManifest = z.infer<typeof TemplateManifestSchema>;
 type BaseOptions = {
   /** Output project directory name. */
   project: string | null;
-  /** Run `npm/pnpm/yarn/bun install` after scaffolding. */
+  /** Run `npm/pnpm/yarn install` after scaffolding. */
   install: boolean;
   /** Solidity / contract framework. `"none"` means contracts-only with no framework. */
   solidityFramework: SolidityFramework | "none" | null;

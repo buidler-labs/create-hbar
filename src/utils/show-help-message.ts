@@ -25,7 +25,6 @@ export const showHelpMessage = () => {
     ${chalk.gray("--use-npm")}                       Use npm as package manager
     ${chalk.gray("-p, --use-pnpm")}                  Use pnpm as package manager
     ${chalk.gray("--use-yarn")}                      Use yarn as package manager
-    ${chalk.gray("--use-bun")}                       Use bun as package manager
     ${chalk.gray("--skip-install")}                  Skip dependency installation
     ${chalk.gray("-y, --yes")}                       Accept all defaults, skip all prompts
     ${chalk.gray("--ci")}                            CI mode: non-interactive, structured output, no color

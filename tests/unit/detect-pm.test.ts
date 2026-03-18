@@ -23,11 +23,6 @@ describe("detectPackageManager", () => {
     expect(detectPackageManager()).toBe("yarn");
   });
 
-  it("returns bun when user agent starts with bun", () => {
-    process.env.npm_config_user_agent = "bun/1.0.0 node/v20.0.0";
-    expect(detectPackageManager()).toBe("bun");
-  });
-
   it("returns npm when user agent starts with npm", () => {
     process.env.npm_config_user_agent = "npm/10.0.0 node/v20.0.0";
     expect(detectPackageManager()).toBe("npm");

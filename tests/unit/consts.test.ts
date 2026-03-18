@@ -125,12 +125,11 @@ describe("NETWORKS", () => {
 });
 
 describe("PACKAGE_MANAGERS", () => {
-  it("lists all four package managers", () => {
+  it("lists all three package managers", () => {
     const values = PACKAGE_MANAGERS.map(pm => pm.value);
     expect(values).toContain("npm");
     expect(values).toContain("pnpm");
     expect(values).toContain("yarn");
-    expect(values).toContain("bun");
   });
 });
 

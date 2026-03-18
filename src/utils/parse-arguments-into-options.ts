@@ -87,7 +87,6 @@ export function parseArgumentsIntoOptions(rawArgs: Args): {
     .option("--use-npm", "Use npm as package manager")
     .option("-p, --use-pnpm", "Use pnpm as package manager")
     .option("--use-yarn", "Use yarn as package manager")
-    .option("--use-bun", "Use bun as package manager")
     .option("--skip-install", "Skip dependency installation")
     .option("-y, --yes", "Accept all defaults and skip all prompts")
     .option("--ci", "CI mode: non-interactive, structured log output, no TTY color")
@@ -155,16 +154,13 @@ export function parseArgumentsIntoOptions(rawArgs: Args): {
 
   // ── Resolve package manager (explicit flags take priority over detection) ──
   let packageManager: PackageManager | null = null;
-  const pmFlagCount = [opts.useNpm, opts.usePnpm, opts.useYarn, opts.useBun].filter(Boolean).length;
+  const pmFlagCount = [opts.useNpm, opts.usePnpm, opts.useYarn].filter(Boolean).length;
   if (pmFlagCount > 1) {
-    exitWithBadArgs(
-      "Only one package manager flag may be specified at a time (--use-npm, --use-pnpm, --use-yarn, --use-bun)",
-    );
+    exitWithBadArgs("Only one package manager flag may be specified at a time (--use-npm, --use-pnpm, --use-yarn)");
   }
   if (opts.useNpm) packageManager = validateEnum("npm", VALID_PACKAGE_MANAGERS, "use-npm");
   else if (opts.usePnpm) packageManager = validateEnum("pnpm", VALID_PACKAGE_MANAGERS, "use-pnpm");
   else if (opts.useYarn) packageManager = validateEnum("yarn", VALID_PACKAGE_MANAGERS, "use-yarn");
-  else if (opts.useBun) packageManager = validateEnum("bun", VALID_PACKAGE_MANAGERS, "use-bun");
 
   // ── --ci implies --yes ────────────────────────────────────────────────────
   const acceptDefaults = Boolean(opts.yes) || Boolean(opts.ci);

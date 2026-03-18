@@ -23,7 +23,7 @@ Create-hbar is an interactive CLI (like `create-next-app` or `create-react-app`)
   [nodejs.org](https://nodejs.org/)
 - **Git** (with `user.name` and `user.email` configured)  
   [git-scm.com](https://git-scm.com/)
-- **Yarn**, **npm**, **pnpm**, or **bun** (one of them; the CLI can detect it)
+- **Yarn**, **npm**, or **pnpm** (one of them; the CLI can detect it)
 
 If you choose **Foundry** as the Solidity framework, you need Foundry installed:
 
@@ -131,21 +131,21 @@ node /path/to/create-hbar/bin/create-hbar.js --yes --skip-install my-hedera-dapp
 
 ## CLI options
 
-| Option                                                     | Description                                     |
-| ---------------------------------------------------------- | ----------------------------------------------- |
-| `[project-name]`                                           | Project directory name (or use `--destination`) |
-| `-d, --destination <path>`                                 | Output path instead of positional name          |
-| `-t, --template <key>`                                     | Built-in (`blank`, `hts-nft`, …) or `org/repo`  |
-| `-f, --frontend <fw>`                                      | `nextjs-app`                                    |
-| `-s, --solidity-framework <fw>`                            | `foundry` \| `hardhat` \| `none`                |
-| `-w, --wallet <list>`                                      | `rainbowkit`                                    |
-| `--network <network>`                                      | `testnet` \| `mainnet`                          |
-| `--use-npm` \| `--use-pnpm` \| `--use-yarn` \| `--use-bun` | Force package manager                           |
-| `--skip-install`                                           | Don’t run install after scaffolding             |
-| `-y, --yes`                                                | Use defaults for all prompts (non-interactive)  |
-| `--ci`                                                     | CI mode (implies `--yes`, structured output)    |
-| `-h, --help`                                               | Show help                                       |
-| `-v, --version`                                            | Show version                                    |
+| Option                                      | Description                                     |
+| ------------------------------------------- | ----------------------------------------------- |
+| `[project-name]`                            | Project directory name (or use `--destination`) |
+| `-d, --destination <path>`                  | Output path instead of positional name          |
+| `-t, --template <key>`                      | Built-in (`blank`, `hts-nft`, …) or `org/repo`  |
+| `-f, --frontend <fw>`                       | `nextjs-app`                                    |
+| `-s, --solidity-framework <fw>`             | `foundry` \| `hardhat` \| `none`                |
+| `-w, --wallet <list>`                       | `rainbowkit`                                    |
+| `--network <network>`                       | `testnet` \| `mainnet`                          |
+| `--use-npm` \| `--use-pnpm` \| `--use-yarn` | Force package manager                           |
+| `--skip-install`                            | Don’t run install after scaffolding             |
+| `-y, --yes`                                 | Use defaults for all prompts (non-interactive)  |
+| `--ci`                                      | CI mode (implies `--yes`, structured output)    |
+| `-h, --help`                                | Show help                                       |
+| `-v, --version`                             | Show version                                    |
 
 ---
 

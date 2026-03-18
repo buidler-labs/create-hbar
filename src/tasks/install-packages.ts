@@ -8,7 +8,6 @@ const INSTALL_ARGS: Record<PackageManager, string[]> = {
   npm: ["install"],
   pnpm: ["install"],
   yarn: ["install"],
-  bun: ["install"],
 };
 
 export { InstallError };

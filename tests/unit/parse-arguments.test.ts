@@ -188,11 +188,6 @@ describe("parseArgumentsIntoOptions", () => {
       expect(rawOptions.packageManager).toBe("yarn");
     });
 
-    it("--use-bun sets packageManager to bun", () => {
-      const { rawOptions } = parseArgumentsIntoOptions(args("--use-bun"));
-      expect(rawOptions.packageManager).toBe("bun");
-    });
-
     it("exits BAD_ARGS when multiple PM flags are combined", () => {
       expect(() => parseArgumentsIntoOptions(args("--use-npm", "--use-pnpm"))).toThrow(
         `process.exit(${EXIT_CODES.BAD_ARGS})`,
