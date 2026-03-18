@@ -105,6 +105,11 @@ describe("parseArgumentsIntoOptions", () => {
       expect(rawOptions.frontend).toBe("nextjs-app");
     });
 
+    it("accepts none", () => {
+      const { rawOptions } = parseArgumentsIntoOptions(args("--frontend", "none"));
+      expect(rawOptions.frontend).toBe("none");
+    });
+
     it("exits BAD_ARGS on invalid frontend value", () => {
       expect(() => parseArgumentsIntoOptions(args("--frontend", "react-native"))).toThrow(
         `process.exit(${EXIT_CODES.BAD_ARGS})`,

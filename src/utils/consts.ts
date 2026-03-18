@@ -24,8 +24,11 @@ export const TEMPLATES = [
 /** Fallback when fetching template branches fails (e.g. offline). Same shape as TEMPLATES. */
 export const TEMPLATES_FALLBACK = TEMPLATES;
 
-/** Frontend framework (Next.js only). */
-export const FRONTENDS = [{ value: "nextjs-app", label: "Next.js (App Router)" }] as const;
+/** Frontend framework options. */
+export const FRONTENDS = [
+  { value: "nextjs-app", label: "Next.js (App Router)" },
+  { value: "none", label: "None (contracts only)" },
+] as const;
 
 /**
  * Solidity framework options for the interactive prompt.

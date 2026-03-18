@@ -28,8 +28,10 @@ export function renderOutroMessage(options: Options) {
     \t  1. Start the local chain: ${chalk.dim("yarn")} chain
     \t  2. In another terminal, deploy to the local node: ${chalk.dim("yarn")} deploy --network localhost
     \t  3. Run contract tests (with the chain running): ${chalk.dim("yarn")} test
-    \t  4. Start the frontend: ${chalk.dim("yarn")} start
     `;
+    if (options.frontend !== "none") {
+      message += `\t  4. Start the frontend: ${chalk.dim("yarn")} start\n    `;
+    }
 
     const deployTestnet =
       options.solidityFramework === SOLIDITY_FRAMEWORKS.HARDHAT
@@ -41,7 +43,7 @@ export function renderOutroMessage(options: Options) {
     \t  After deploy, verify on Hashscan (no args needed): ${chalk.dim("yarn")} verify:testnet
     \t  For mainnet: ${chalk.dim("yarn")} verify:mainnet
     `;
-  } else {
+  } else if (options.frontend !== "none") {
     message += `
     \t${chalk.bold("Start the frontend")}: ${chalk.dim("yarn")} start
     `;

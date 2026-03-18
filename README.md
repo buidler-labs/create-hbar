@@ -136,7 +136,7 @@ node /path/to/create-hbar/bin/create-hbar.js --yes --skip-install my-hedera-dapp
 | `[project-name]`                            | Project directory name (or use `--destination`) |
 | `-d, --destination <path>`                  | Output path instead of positional name          |
 | `-t, --template <key>`                      | Built-in (`blank`, `hts-nft`, …) or `org/repo`  |
-| `-f, --frontend <fw>`                       | `nextjs-app`                                    |
+| `-f, --frontend <fw>`                       | `nextjs-app` \| `none` (contracts only)         |
 | `-s, --solidity-framework <fw>`             | `foundry` \| `hardhat` \| `none`                |
 | `-w, --wallet <list>`                       | `rainbowkit`                                    |
 | `--network <network>`                       | `testnet` \| `mainnet`                          |

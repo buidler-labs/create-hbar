@@ -90,9 +90,10 @@ describe("TEMPLATES", () => {
 });
 
 describe("FRONTENDS", () => {
-  it("only includes nextjs-app", () => {
-    expect(FRONTENDS).toHaveLength(1);
-    expect(FRONTENDS[0].value).toBe("nextjs-app");
+  it("includes nextjs-app and none", () => {
+    const values = FRONTENDS.map(f => f.value);
+    expect(values).toContain("nextjs-app");
+    expect(values).toContain("none");
   });
 });
 

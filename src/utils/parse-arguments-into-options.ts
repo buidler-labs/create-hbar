@@ -80,7 +80,7 @@ export function parseArgumentsIntoOptions(rawArgs: Args): {
     .argument("[project-name]", "Name / path of the project directory to create")
     .option("-d, --destination <path>", "Output directory (alternative to positional arg)")
     .option("-t, --template <template>", "Starter template key or GitHub org/repo")
-    .option("-f, --frontend <framework>", "Frontend framework (nextjs-app)")
+    .option("-f, --frontend <framework>", "Frontend framework (nextjs-app|none)")
     .option("-s, --solidity-framework <fw>", "Solidity framework (foundry|hardhat|none)")
     .option("-w, --wallet <wallets>", "Wallet connector(s), comma-separated (walletconnect,metamask)")
     .option("--network <network>", "Target network (testnet|mainnet)")

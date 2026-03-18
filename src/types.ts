@@ -11,8 +11,8 @@ export type Network = "testnet" | "mainnet";
 /** Built-in starter templates. Also accepts `"org/repo"` strings for community templates. */
 export type Template = "blank" | "hts-fungible" | "hts-nft" | "hcs-dao" | "defi-swap";
 
-/** Frontend framework (Next.js only). */
-export type Frontend = "nextjs-app";
+/** Frontend framework. "none" = contracts only (Hardhat or Foundry). */
+export type Frontend = "nextjs-app" | "none";
 
 /**
  * Solidity / contract framework choices.

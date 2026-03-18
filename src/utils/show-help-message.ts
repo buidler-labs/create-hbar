@@ -15,7 +15,7 @@ export const showHelpMessage = () => {
     ${chalk.gray("-t, --template <template>")}       Starter template (or omit and choose in the flow)
                                        ${chalk.dim("blank | hts-fungible | hts-nft | hcs-dao | defi-swap | org/repo")}
     ${chalk.gray("-f, --frontend <framework>")}      Frontend framework
-                                       ${chalk.dim("nextjs-app")}
+                                       ${chalk.dim("nextjs-app | none")}
     ${chalk.gray("-s, --solidity-framework <fw>")}   Solidity / contract framework
                                        ${chalk.dim("foundry | hardhat | none")}
     ${chalk.gray("-w, --wallet <wallets>")}          Wallet connector

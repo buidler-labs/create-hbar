@@ -12,6 +12,7 @@ import { applyRenameMap } from "./apply-rename-map";
 import { generateEnvExample } from "./generate-env-example";
 
 const TEMPLATE_MANIFEST_FILENAME = "template.json";
+const NEXTJS_PACKAGE = "nextjs";
 
 /**
  * If template.json exists in project root, parse it, run rename and env
@@ -37,7 +38,7 @@ function processTemplateManifest(projectDir: string, projectName: string): void 
 
 /**
  * Removes packages/ for frameworks the user did not select so only the chosen
- * solidity framework (and nextjs) remain.
+ * solidity framework (and nextjs if frontend is not "none") remain.
  */
 function removeUnselectedFrameworkPackages(targetDir: string, solidityFramework: SolidityFramework | null): void {
   const packagesDir = path.join(targetDir, "packages");
@@ -60,11 +61,37 @@ function removeUnselectedFrameworkPackages(targetDir: string, solidityFramework:
   }
 }
 
+/** Removes packages/nextjs when frontend is "none" (contracts-only scaffold). */
+function removeNextjsPackage(targetDir: string): void {
+  const nextjsPath = path.join(targetDir, "packages", NEXTJS_PACKAGE);
+  if (fs.existsSync(nextjsPath)) {
+    fs.rmSync(nextjsPath, { recursive: true });
+  }
+}
+
+/** Script keys that reference the Next.js package; removed when frontend is "none". */
+const NEXTJS_SCRIPT_KEYS = [
+  "start",
+  "next:build",
+  "next:check-types",
+  "next:format",
+  "next:lint",
+  "next:serve",
+  "vercel",
+  "vercel:yolo",
+  "vercel:login",
+  "ipfs",
+];
+
 /**
  * Updates root package.json so workspaces and scripts only reference the
- * selected solidity framework (removes the other so yarn/workspaces don't error).
+ * selected solidity framework and, when frontend is not "none", the nextjs package.
  */
-function filterRootPackageJson(targetDir: string, selectedFramework: SolidityFramework | null | undefined): void {
+function filterRootPackageJson(
+  targetDir: string,
+  selectedFramework: SolidityFramework | null | undefined,
+  frontend: Options["frontend"],
+): void {
   const pkgPath = path.join(targetDir, "package.json");
   if (!fs.existsSync(pkgPath)) return;
 
@@ -79,7 +106,10 @@ function filterRootPackageJson(targetDir: string, selectedFramework: SolidityFra
       : Array.isArray((ws as { packages?: string[] }).packages)
         ? (ws as { packages: string[] }).packages
         : [];
-    const filtered = wsList.filter(w => !unselected.some(sf => w.includes(sf)));
+    let filtered = wsList.filter(w => !unselected.some(sf => w.includes(sf)));
+    if (frontend === "none") {
+      filtered = filtered.filter(w => !w.includes(NEXTJS_PACKAGE));
+    }
     if (Array.isArray(pkg.workspaces)) {
       pkg.workspaces = filtered;
     } else if (typeof pkg.workspaces === "object" && pkg.workspaces !== null && "packages" in pkg.workspaces) {
@@ -89,6 +119,23 @@ function filterRootPackageJson(targetDir: string, selectedFramework: SolidityFra
 
   if (pkg.scripts && typeof pkg.scripts === "object") {
     const scripts = pkg.scripts as Record<string, string>;
+
+    if (frontend === "none") {
+      for (const key of NEXTJS_SCRIPT_KEYS) {
+        delete scripts[key];
+      }
+      if (selectedFramework === SOLIDITY_FRAMEWORKS.HARDHAT) {
+        scripts["format"] = "yarn hardhat:format";
+        scripts["lint"] = "yarn hardhat:lint";
+      } else if (selectedFramework === SOLIDITY_FRAMEWORKS.FOUNDRY) {
+        scripts["format"] = "yarn workspace @se-2/foundry format";
+        scripts["lint"] = "yarn workspace @se-2/foundry lint";
+      } else {
+        delete scripts["format"];
+        delete scripts["lint"];
+      }
+    }
+
     for (const key of Object.keys(scripts)) {
       if (unselected.some(sf => key === sf || key.startsWith(`${sf}:`))) {
         delete scripts[key];
@@ -140,7 +187,10 @@ export async function copyTemplateFiles(options: Options, targetDir: string): Pr
     }
 
     removeUnselectedFrameworkPackages(targetDir, options.solidityFramework);
-    filterRootPackageJson(targetDir, options.solidityFramework);
+    if (options.frontend === "none") {
+      removeNextjsPackage(targetDir);
+    }
+    filterRootPackageJson(targetDir, options.solidityFramework, options.frontend);
 
     processTemplateManifest(targetDir, options.project);
 
