@@ -42,7 +42,10 @@ export async function installPackages(
   }
 
   const args = INSTALL_ARGS[packageManager];
-  const execute = execaCommand(`${packageManager} ${args.join(" ")}`, { cwd: targetDir });
+  const execute = execaCommand(`${packageManager} ${args.join(" ")}`, {
+    cwd: targetDir,
+    reject: false,
+  });
 
   let outputBuffer = "";
   const chunkSize = 1024;
@@ -70,7 +73,12 @@ export async function installPackages(
   try {
     const result = await execute;
     if (result.exitCode !== 0) {
-      throw new InstallError(`Dependency installation failed (exit code ${result.exitCode}).`, result);
+      const output = [result.stdout, result.stderr].filter(Boolean).join("\n").trim();
+      throw new InstallError(
+        `Dependency installation failed (exit code ${result.exitCode}).`,
+        undefined,
+        output || undefined,
+      );
     }
   } catch (err) {
     if (err instanceof InstallError) throw err;
