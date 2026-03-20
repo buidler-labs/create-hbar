@@ -5,13 +5,41 @@ import fs from "fs";
 import { SOLIDITY_FRAMEWORKS } from "../utils/consts";
 import packageJson from "../../package.json";
 
-const foundryLibraries = [
+const defaultFoundryLibraries = [
   "foundry-rs/forge-std",
   "OpenZeppelin/openzeppelin-contracts",
   "gnsps/solidity-bytes-utils",
   "hashgraph/hedera-forking",
 ];
+const foundryLibRepoMap: Record<string, string> = {
+  "forge-std": "foundry-rs/forge-std",
+  "openzeppelin-contracts": "OpenZeppelin/openzeppelin-contracts",
+  "solidity-bytes-utils": "gnsps/solidity-bytes-utils",
+  "hedera-forking": "hashgraph/hedera-forking",
+};
 const createHbarVersion = packageJson.version;
+
+async function resolveFoundryLibraries(foundryWorkSpacePath: string): Promise<string[]> {
+  const remappingsPath = path.join(foundryWorkSpacePath, "remappings.txt");
+  if (!fs.existsSync(remappingsPath)) return defaultFoundryLibraries;
+
+  const remappings = await fs.promises.readFile(remappingsPath, "utf8");
+  const parsedLibraries = new Set<string>();
+
+  for (const line of remappings.split("\n")) {
+    const trimmedLine = line.trim();
+    if (!trimmedLine || trimmedLine.startsWith("#")) continue;
+
+    // remappings lines usually look like "forge-std/=lib/forge-std/src/".
+    const match = trimmedLine.match(/(?:^|=)\s*lib\/([^/]+)\//);
+    if (!match) continue;
+
+    const repository = foundryLibRepoMap[match[1]];
+    if (repository) parsedLibraries.add(repository);
+  }
+
+  return parsedLibraries.size > 0 ? [...parsedLibraries] : defaultFoundryLibraries;
+}
 
 /**
  * Stages all files, creates the initial commit (message: create-hbar branding),
@@ -32,6 +60,7 @@ export async function createFirstGitCommit(targetDir: string, options: Options) 
     if (options.solidityFramework === SOLIDITY_FRAMEWORKS.FOUNDRY) {
       const foundryWorkSpacePath = path.resolve(targetDir, "packages", SOLIDITY_FRAMEWORKS.FOUNDRY);
       const libDir = path.join(foundryWorkSpacePath, "lib");
+      const foundryLibraries = await resolveFoundryLibraries(foundryWorkSpacePath);
 
       // Remove any pre-existing lib directories copied from the template so that
       // `forge install` (which adds git submodules) doesn't fail with
