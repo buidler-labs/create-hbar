@@ -51,6 +51,15 @@ const TemplateDefaultsSchema = z.object({
   solidityFramework: z.enum(["hardhat", "foundry", "none"]).optional(),
 });
 
+const TemplateOutroSchema = z.object({
+  /**
+   * Replaces the default contract/frontend-specific outro body (between the shared
+   * header and footer). One string per line. Leading `+` renders bold.
+   * Use `{run:script}` for the package-manager-specific command (e.g. `{run:start}` → `yarn start` / `npm run start`).
+   */
+  steps: z.array(z.string().min(1)).min(1),
+});
+
 const TemplateManifestBlockSchema = z.object({
   /**
    * Token replacement map.
@@ -76,6 +85,8 @@ const TemplateManifestBlockSchema = z.object({
   capabilities: TemplateCapabilitiesSchema.optional(),
   /** Template-specific default values used when multiple options exist. */
   defaults: TemplateDefaultsSchema.optional(),
+  /** Optional custom outro body; see `outro.steps`. */
+  outro: TemplateOutroSchema.optional(),
 });
 
 function normalizeTemplateManifestRaw(raw: unknown): unknown {
@@ -152,6 +163,11 @@ export type Options = {
   wallet: Wallet[];
   network: Network;
   packageManager: PackageManager;
+  /**
+   * From template manifest `outro.steps` after scaffold. When set, replaces the
+   * default dynamic outro section.
+   */
+  outroSteps?: string[];
 };
 
 /** Describes a single `.template.` file found during template processing. */
