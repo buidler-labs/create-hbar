@@ -44,8 +44,8 @@ export async function promptForMissingOptions(rawOptions: RawOptions): Promise<O
             placeholder: DEFAULT_OPTIONS.project,
             defaultValue: DEFAULT_OPTIONS.project,
             validate(value) {
-              if (!value.trim()) return "Project name cannot be empty.";
-              const result = validateNpmName(value);
+              const effective = value.trim() || DEFAULT_OPTIONS.project;
+              const result = validateNpmName(effective);
               if (!result.valid) return `Invalid project name: ${result.problems[0]}`;
             },
           })) as string,
