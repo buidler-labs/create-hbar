@@ -2,7 +2,7 @@ import type { Options } from "../types";
 import chalk from "chalk";
 import { SOLIDITY_FRAMEWORKS } from "./consts";
 
-/** Expands `{run:script}` placeholders (e.g. `{run:start}` → `yarn start` / `npm run start`). */
+/** Expands `{run:script}` placeholders (e.g. `{run:start}` → `yarn start`). */
 export function expandOutroPlaceholders(line: string, run: (script: string) => string): string {
   return line.replace(/\{run:([a-zA-Z0-9:_-]+)\}/g, (_, script: string) => run(script));
 }
@@ -15,9 +15,8 @@ function formatOutroLine(line: string): string {
 }
 
 export function renderOutroMessage(options: Options) {
-  const pm = options.packageManager;
-  const run = (script: string) => (pm === "npm" ? `npm run ${script}` : `${pm} ${script}`);
-  const installAndFormat = `${pm} install && ${run("format")}`;
+  const run = (script: string) => `yarn ${script}`;
+  const installAndFormat = `yarn install && yarn format`;
 
   let message = `
   \n

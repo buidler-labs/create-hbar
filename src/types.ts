@@ -2,8 +2,8 @@ import { z } from "zod";
 
 export type Args = string[];
 
-/** Supported package managers for the generated project. */
-export type PackageManager = "npm" | "pnpm" | "yarn";
+/** Package manager for the generated project. Yarn is the only supported PM. */
+export type PackageManager = "yarn";
 
 /** Hedera network targets. */
 export type Network = "testnet" | "mainnet";
@@ -55,7 +55,7 @@ const TemplateOutroSchema = z.object({
   /**
    * Replaces the default contract/frontend-specific outro body (between the shared
    * header and footer). One string per line. Leading `+` renders bold.
-   * Use `{run:script}` for the package-manager-specific command (e.g. `{run:start}` → `yarn start` / `npm run start`).
+   * Use `{run:script}` for the yarn command (e.g. `{run:start}` → `yarn start`).
    */
   steps: z.array(z.string().min(1)).min(1),
 });
@@ -124,7 +124,7 @@ export type TemplateManifest = z.infer<typeof TemplateManifestSchema>;
 type BaseOptions = {
   /** Output project directory name. */
   project: string | null;
-  /** Run `npm/pnpm/yarn install` after scaffolding. */
+  /** Run `yarn install` after scaffolding. */
   install: boolean;
   /** Solidity / contract framework. `"none"` means contracts-only with no framework. */
   solidityFramework: SolidityFramework | "none" | null;
@@ -136,8 +136,8 @@ type BaseOptions = {
   wallet: Wallet[] | null;
   /** Target Hedera network. */
   network: Network | null;
-  /** Package manager to use in the generated project. */
-  packageManager: PackageManager | null;
+  /** Package manager — always yarn. */
+  packageManager: PackageManager;
 };
 
 /** Raw options after flag parsing, before interactive prompts fill in nulls. */
@@ -154,7 +154,7 @@ export type RawOptions = BaseOptions & {
 export type Options = {
   [Prop in keyof Omit<
     BaseOptions,
-    "solidityFramework" | "template" | "frontend" | "wallet" | "network" | "packageManager"
+    "solidityFramework" | "template" | "frontend" | "wallet" | "network"
   >]: NonNullable<BaseOptions[Prop]>;
 } & {
   solidityFramework: SolidityFramework | null;
@@ -162,7 +162,6 @@ export type Options = {
   frontend: Frontend;
   wallet: Wallet[];
   network: Network;
-  packageManager: PackageManager;
   /**
    * From template manifest `outro.steps` after scaffold. When set, replaces the
    * default dynamic outro section.
