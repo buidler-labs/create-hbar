@@ -78,7 +78,7 @@ export const NETWORKS = [
 /** Package manager options. */
 export const PACKAGE_MANAGERS = [
   { value: "yarn", label: "Yarn", hint: "recommended" },
-  { value: "npm", label: "npm" },
+  { value: "npm", label: "Npm" },
 ] as const;
 
 /** Hedera brand palette used for terminal output styling. */

@@ -4,7 +4,10 @@ import { SOLIDITY_FRAMEWORKS } from "./consts";
 
 /** Expands `{run:script}` placeholders (e.g. `{run:start}` → `yarn start` or `npm run start`). */
 export function expandOutroPlaceholders(line: string, run: (script: string) => string): string {
-  return line.replace(/\{run:([a-zA-Z0-9:_-]+)\}/g, (_, script: string) => run(script));
+  // Replace {run:script} with colored command
+  return line.replace(/\{run:([a-zA-Z0-9:_-]+)\}/g, (_, script: string) => {
+    return chalk.cyan(run(script));
+  });
 }
 
 function formatOutroLine(line: string): string {
@@ -26,9 +29,42 @@ function getRunCommand(packageManager: Options["packageManager"], script: string
 function getInstallAndFormatCommand(packageManager: Options["packageManager"]): string {
   if (packageManager === "npm") {
     // Use --legacy-peer-deps to handle peer dependency conflicts in Hedera packages
-    return `npm install --legacy-peer-deps && npm run format`;
+    return `${chalk.cyan("npm install --legacy-peer-deps")} && ${chalk.cyan("npm run format")}`;
   }
-  return `yarn install && yarn format`;
+  return `${chalk.cyan("yarn install")} && ${chalk.cyan("yarn format")}`;
+}
+
+/**
+ * Wraps text into lines of maximum width, preserving existing newlines.
+ */
+function wrapText(text: string, maxWidth: number = 80): string {
+  const lines = text.split("\n");
+  const result: string[] = [];
+
+  for (const line of lines) {
+    if (line.length <= maxWidth) {
+      result.push(line);
+      continue;
+    }
+
+    const words = line.split(" ");
+    let currentLine = "";
+
+    for (const word of words) {
+      if ((currentLine + " " + word).length > maxWidth && currentLine.length > 0) {
+        result.push(currentLine.trim());
+        currentLine = word;
+      } else {
+        currentLine += " " + word;
+      }
+    }
+
+    if (currentLine.trim()) {
+      result.push(currentLine.trim());
+    }
+  }
+
+  return result.join("\n");
 }
 
 export function renderOutroMessage(options: Options) {
@@ -36,40 +72,43 @@ export function renderOutroMessage(options: Options) {
   const installAndFormat = getInstallAndFormatCommand(options.packageManager);
 
   let message = `
-  \n
   ${chalk.bold.green("Congratulations!")} Your project has been scaffolded! 🎉
 
   ${chalk.bold("Next steps:")}
-  
-  ${chalk.dim("cd")} ${options.project}
-  `;
+
+  ${chalk.dim("cd")} ${chalk.white(options.project)}
+`;
 
   if (!options.install) {
     message += `
-    \t${chalk.bold("Install dependencies & format files")}
-    \t${chalk.dim(installAndFormat)}
-    `;
+  ${chalk.bold("Install dependencies & format files")}
+    ${installAndFormat}
+`;
   }
 
   const customSteps = options.outroSteps;
   if (customSteps?.length) {
+    message += "\n";
     for (const raw of customSteps) {
       const expanded = expandOutroPlaceholders(raw, run);
-      message += `\n    \t${formatOutroLine(expanded)}`;
+      const formatted = formatOutroLine(expanded);
+      // Wrap long lines and add proper indentation
+      const wrapped = wrapText(formatted, 76);
+      const indented = wrapped.split("\n").join("\n    ");
+      message += `  ${indented}\n`;
     }
-    message += "\n    ";
   } else if (
     options.solidityFramework === SOLIDITY_FRAMEWORKS.HARDHAT ||
     options.solidityFramework === SOLIDITY_FRAMEWORKS.FOUNDRY
   ) {
     message += `
-    \t${chalk.bold("Run locally:")}
-    \t  1. Start the local chain: ${chalk.dim(run("chain"))}
-    \t  2. In another terminal, deploy to the local node: ${chalk.dim(`${run("deploy")} --network localhost`)}
-    \t  3. Run contract tests (with the chain running): ${chalk.dim(run("test"))}
-    `;
+  ${chalk.bold("Run locally:")}
+    1. Start the local chain: ${chalk.cyan(run("chain"))}
+    2. In another terminal, deploy to the local node: ${chalk.cyan(`${run("deploy")} --network localhost`)}
+    3. Run contract tests (with the chain running): ${chalk.cyan(run("test"))}
+`;
     if (options.frontend !== "none") {
-      message += `\t  4. Start the frontend: ${chalk.dim(run("start"))}\n    `;
+      message += `    4. Start the frontend: ${chalk.cyan(run("start"))}\n`;
     }
 
     const deployTestnet =
@@ -77,20 +116,20 @@ export function renderOutroMessage(options: Options) {
         ? `${run("deploy")} --network hederaTestnet`
         : `${run("deploy")} --network hedera_testnet`;
     message += `
-    \t${chalk.bold("Deploy to Hedera testnet:")}
-    \t  Set your deployer key (e.g. ${chalk.dim(run("generate"))}), then: ${chalk.dim(deployTestnet)}
-    \t  After deploy, verify on Hashscan (no args needed): ${chalk.dim(run("verify:testnet"))}
-    \t  For mainnet: ${chalk.dim(run("verify:mainnet"))}
-    `;
+  ${chalk.bold("Deploy to Hedera testnet:")}
+    Set your deployer key (e.g. ${chalk.cyan(run("generate"))}), then: ${chalk.cyan(deployTestnet)}
+    After deploy, verify on Hashscan (no args needed): ${chalk.cyan(run("verify:testnet"))}
+    For mainnet: ${chalk.cyan(run("verify:mainnet"))}
+`;
   } else if (options.frontend !== "none") {
     message += `
-    \t${chalk.bold("Start the frontend")}: ${chalk.dim(run("start"))}
-    `;
+  ${chalk.bold("Start the frontend")}: ${chalk.cyan(run("start"))}
+`;
   }
 
   message += `
   ${chalk.bold.green("Thanks for using Scaffold-HBAR 🙏, Happy Building!")}
-  `;
+`;
 
   console.log(message);
 }
