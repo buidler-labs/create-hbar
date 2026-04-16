@@ -32,6 +32,36 @@ function createNpmrcForNpm(targetDir: string, packageManager: PackageManager): v
 }
 
 /**
+ * Removes husky-related scripts from package.json when using npm.
+ * This prevents errors since we remove the .husky directory for npm projects.
+ * @param targetDir - The target directory containing package.json.
+ * @param packageManager - The package manager being used.
+ */
+function removeHuskyScripts(targetDir: string, packageManager: PackageManager): void {
+  if (packageManager !== "npm") return;
+
+  const pkgPath = path.join(targetDir, "package.json");
+  if (!fs.existsSync(pkgPath)) return;
+
+  try {
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8")) as Record<string, unknown>;
+
+    if (pkg.scripts && typeof pkg.scripts === "object") {
+      const scripts = pkg.scripts as Record<string, string>;
+
+      // Remove husky-related scripts that will fail without .husky directory
+      delete scripts["postinstall"]; // Usually "husky"
+      delete scripts["precommit"]; // Usually "lint-staged"
+      delete scripts["lint-staged"];
+    }
+
+    fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2), "utf8");
+  } catch (err) {
+    console.warn("Warning: Could not update package.json scripts:", err);
+  }
+}
+
+/**
  * Transforms yarn-specific script commands to npm equivalents.
  * Handles:
  * - `yarn workspace @sh/<pkg> <script>` → `npm run <script> -w @sh/<pkg>`
@@ -317,6 +347,9 @@ export async function copyTemplateFiles(options: Options, targetDir: string): Pr
 
     // Remove Yarn-specific files when using npm to prevent conflicts
     removeYarnSpecificFiles(targetDir, options.packageManager);
+
+    // Remove husky scripts from package.json when using npm (husky is yarn-specific)
+    removeHuskyScripts(targetDir, options.packageManager);
 
     createNpmrcForNpm(targetDir, options.packageManager);
 
