@@ -2,7 +2,7 @@ import type { Options } from "../types";
 import chalk from "chalk";
 import { SOLIDITY_FRAMEWORKS } from "./consts";
 
-/** Expands `{run:script}` placeholders (e.g. `{run:start}` → `yarn start` or `npm run start`). */
+/** Expands `{run:script}` placeholders (e.g. `{run:next:start}` → `yarn next:start` or `npm run next:start`). */
 export function expandOutroPlaceholders(line: string, run: (script: string) => string): string {
   // Replace {run:script} with colored command
   return line.replace(/\{run:([a-zA-Z0-9:_-]+)\}/g, (_, script: string) => {
@@ -73,6 +73,9 @@ function wrapText(text: string, maxWidth: number = 80): string {
 export function renderOutroMessage(options: Options) {
   const run = (script: string) => getRunCommand(options.packageManager, script);
   const installAndFormat = getInstallAndFormatCommand(options.packageManager);
+  const frameworkPrefix = options.solidityFramework ? `${options.solidityFramework}:` : "";
+  const contractScript = (script: string) => `${frameworkPrefix}${script}`;
+  const frontendStartScript = "next:start";
 
   let message = `
   ${chalk.bold.green("Congratulations!")} Your project has been scaffolded! 🎉
@@ -105,15 +108,20 @@ export function renderOutroMessage(options: Options) {
     options.solidityFramework === SOLIDITY_FRAMEWORKS.FOUNDRY
   ) {
     // For npm, use hasArgs=true when the command will be followed by arguments (needs `--` separator)
-    const deployCmd = getRunCommand(options.packageManager, "deploy", true);
+    const chainCmd = run(contractScript("chain"));
+    const deployCmd = getRunCommand(options.packageManager, contractScript("deploy"), true);
+    const testCmd = run(contractScript("test"));
+    const accountGenerateCmd = run(contractScript("account:generate"));
+    const verifyTestnetCmd = run(contractScript("verify:testnet"));
+    const verifyMainnetCmd = run(contractScript("verify:mainnet"));
     message += `
   ${chalk.bold("Run locally:")}
-    1. Start the local chain: ${chalk.cyan(run("chain"))}
+    1. Start the local chain: ${chalk.cyan(chainCmd)}
     2. In another terminal, deploy to the local node: ${chalk.cyan(`${deployCmd} --network localhost`)}
-    3. Run contract tests (with the chain running): ${chalk.cyan(run("test"))}
+    3. ${options.solidityFramework === SOLIDITY_FRAMEWORKS.FOUNDRY ? "Run contract tests:" : "Run contract tests (with the chain running):"} ${chalk.cyan(testCmd)}
 `;
     if (options.frontend !== "none") {
-      message += `    4. Start the frontend: ${chalk.cyan(run("start"))}\n`;
+      message += `    4. Start the frontend: ${chalk.cyan(run(frontendStartScript))}\n`;
     }
 
     const deployTestnet =
@@ -122,13 +130,13 @@ export function renderOutroMessage(options: Options) {
         : `${deployCmd} --network hedera_testnet`;
     message += `
   ${chalk.bold("Deploy to Hedera testnet:")}
-    Set your deployer key (e.g. ${chalk.cyan(run("generate"))}), then: ${chalk.cyan(deployTestnet)}
-    After deploy, verify on Hashscan (no args needed): ${chalk.cyan(run("verify:testnet"))}
-    For mainnet: ${chalk.cyan(run("verify:mainnet"))}
+    Set your deployer key (e.g. ${chalk.cyan(accountGenerateCmd)}), then: ${chalk.cyan(deployTestnet)}
+    After deploy, verify on Hashscan (no args needed): ${chalk.cyan(verifyTestnetCmd)}
+    For mainnet: ${chalk.cyan(verifyMainnetCmd)}
 `;
   } else if (options.frontend !== "none") {
     message += `
-  ${chalk.bold("Start the frontend")}: ${chalk.cyan(run("start"))}
+  ${chalk.bold("Start the frontend")}: ${chalk.cyan(run(frontendStartScript))}
 `;
   }
 

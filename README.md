@@ -75,8 +75,8 @@ Use this when you’re working on the create-scaffold-hbar CLI itself.
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/hashgraph/create-hbar.git
-cd create-hbar
+git clone https://github.com/hashgraph/create-scaffold-hbar.git
+cd create-scaffold-hbar
 yarn install
 ```
 
@@ -125,7 +125,7 @@ To avoid creating the project inside the repo, run from another directory:
 
 ```bash
 cd /tmp
-node /path/to/create-hbar/bin/create-scaffold-hbar.js --yes --skip-install my-hedera-dapp
+node /path/to/create-scaffold-hbar/bin/create-scaffold-hbar.js --yes --skip-install my-hedera-dapp
 ```
 
 ---
@@ -139,6 +139,10 @@ node /path/to/create-hbar/bin/create-scaffold-hbar.js --yes --skip-install my-he
 | `-t, --template <key>`          | Built-in (`blank`, `payments-scheduler`, …) or `org/repo` |
 | `-f, --frontend <fw>`           | `nextjs-app` \| `none` (contracts only)                   |
 | `-s, --solidity-framework <fw>` | `foundry` \| `hardhat` \| `none`                          |
+<<<<<<< HEAD
+=======
+| `-w, --wallet <list>`           | `rainbowkit`                                              |
+>>>>>>> 02f3785 (update the cli to support the new script naming)
 | `--network <network>`           | `testnet` \| `mainnet`                                    |
 | `--skip-install`                | Don’t run install after scaffolding                       |
 | `-y, --yes`                     | Use defaults for all prompts (non-interactive)            |
@@ -181,7 +185,7 @@ Output goes under `e2e-scenarios/` (gitignored).
 ## Project structure
 
 ```
-create-hbar/
+create-scaffold-hbar/
 ├── bin/create-scaffold-hbar.js    # CLI entry (points to dist/)
 ├── src/
 │   ├── cli.ts            # Main CLI flow

@@ -13,7 +13,7 @@ The CLI uses **giget** to download the chosen template. There are **no embedded 
 Optional `create-scaffold-hbar.outro.steps` is a non-empty array of lines inserted **after** the shared header (`Congratulations`, `cd`, optional install hint) and **before** the closing thanks line. It **replaces** the default contract/frontend-specific middle section when present.
 
 - **`+` prefix**: render the rest of the line in bold.
-- **`{run:script}`**: expanded to the correct package-manager command (e.g. `{run:start}` → `yarn start`, `npm run start`, `pnpm start`).
+- **`{run:script}`**: expanded to the correct package-manager command (e.g. `{run:next:start}` → `yarn next:start`, `npm run next:start`).
 
 Omit `outro` to keep the standard Scaffold-HBAR next-steps text.
 

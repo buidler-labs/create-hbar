@@ -71,12 +71,12 @@ describe("TemplateManifestSchema", () => {
       const result = TemplateManifestSchema.safeParse({
         name: "hedera-demo",
         "create-scaffold-hbar": {
-          outro: { steps: ["+Start the frontend: {run:start}"] },
+          outro: { steps: ["+Start the frontend: {run:next:start}"] },
         },
       });
       expect(result.success).toBe(true);
       if (!result.success) return;
-      expect(result.data["create-scaffold-hbar"]?.outro?.steps).toEqual(["+Start the frontend: {run:start}"]);
+      expect(result.data["create-scaffold-hbar"]?.outro?.steps).toEqual(["+Start the frontend: {run:next:start}"]);
     });
 
     it("preserves rename entry structure on parse", () => {

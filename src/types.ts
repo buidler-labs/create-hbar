@@ -52,7 +52,7 @@ const TemplateOutroSchema = z.object({
   /**
    * Replaces the default contract/frontend-specific outro body (between the shared
    * header and footer). One string per line. Leading `+` renders bold.
-   * Use `{run:script}` for the yarn command (e.g. `{run:start}` → `yarn start`).
+   * Use `{run:script}` for the yarn command (e.g. `{run:next:start}` → `yarn next:start`).
    */
   steps: z.array(z.string().min(1)).min(1),
 });
