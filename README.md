@@ -1,6 +1,6 @@
 # create-scaffold-hbar
 
-**Scaffold Hedera dApp projects from the command line.** Pick a template, frontend, Solidity framework, and wallet—then get a runnable project in one step.
+**Scaffold Hedera dApp projects from the command line.** Pick a template, frontend, and Solidity framework—then get a runnable project in one step.
 
 create-scaffold-hbar is an interactive CLI (like `create-next-app` or `create-react-app`) for the [Hedera](https://hedera.com) ecosystem. It fetches a **template from a Git branch** (via [giget](https://github.com/unjs/giget)), then generates a monorepo with contracts (Hardhat or Foundry), frontend (Next.js), and Hedera network configuration. There are **no embedded templates** in the CLI repo and **no extension system**—templates are branches in the template repo (e.g. `templates/blank-template`).
 
@@ -54,7 +54,7 @@ Create a new Hedera dApp without cloning this repo:
 npx create-scaffold-hbar@latest
 ```
 
-You’ll get interactive prompts for project name, template, frontend, framework, wallet, and network. Yarn is used automatically as the package manager. To accept all defaults and skip prompts:
+You’ll get interactive prompts for project name, template, frontend, framework, and network. Yarn is used automatically as the package manager. To accept all defaults and skip prompts:
 
 ```bash
 npx create-scaffold-hbar@latest --yes
@@ -132,20 +132,19 @@ node /path/to/create-hbar/bin/create-scaffold-hbar.js --yes --skip-install my-he
 
 ## CLI options
 
-| Option                                      | Description                                               |
-| ------------------------------------------- | --------------------------------------------------------- |
-| `[project-name]`                            | Project directory name (or use `--destination`)           |
-| `-d, --destination <path>`                  | Output path instead of positional name                    |
-| `-t, --template <key>`                      | Built-in (`blank`, `payments-scheduler`, …) or `org/repo` |
-| `-f, --frontend <fw>`                       | `nextjs-app` \| `none` (contracts only)                   |
-| `-s, --solidity-framework <fw>`             | `foundry` \| `hardhat` \| `none`                          |
-| `-w, --wallet <list>`                       | `rainbowkit`                                              |
-| `--network <network>`                       | `testnet` \| `mainnet`                                    |
-| `--skip-install`                            | Don’t run install after scaffolding                       |
-| `-y, --yes`                                 | Use defaults for all prompts (non-interactive)            |
-| `--ci`                                      | CI mode (implies `--yes`, structured output)              |
-| `-h, --help`                                | Show help                                                 |
-| `-v, --version`                             | Show version                                              |
+| Option                          | Description                                               |
+| ------------------------------- | --------------------------------------------------------- |
+| `[project-name]`                | Project directory name (or use `--destination`)           |
+| `-d, --destination <path>`      | Output path instead of positional name                    |
+| `-t, --template <key>`          | Built-in (`blank`, `payments-scheduler`, …) or `org/repo` |
+| `-f, --frontend <fw>`           | `nextjs-app` \| `none` (contracts only)                   |
+| `-s, --solidity-framework <fw>` | `foundry` \| `hardhat` \| `none`                          |
+| `--network <network>`           | `testnet` \| `mainnet`                                    |
+| `--skip-install`                | Don’t run install after scaffolding                       |
+| `-y, --yes`                     | Use defaults for all prompts (non-interactive)            |
+| `--ci`                          | CI mode (implies `--yes`, structured output)              |
+| `-h, --help`                    | Show help                                                 |
+| `-v, --version`                 | Show version                                              |
 
 ---
 
@@ -166,14 +165,14 @@ Pre-commit hooks (lefthook) run format, type-check, and lint.
 
 From the repo root after `yarn build`, you can run:
 
-| Scenario        | Command                                                                                                                          | What to check                         |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
-| Help            | `node bin/create-scaffold-hbar.js --help`                                                                                        | All options listed                    |
-| Default         | `node bin/create-scaffold-hbar.js e2e-scenarios/default --yes --skip-install`                                                    | Scaffold + skip install               |
-| Solidity none   | `node bin/create-scaffold-hbar.js e2e-scenarios/sol-none --yes --skip-install -s none`                                           | No "and submodules"                   |
-| Hardhat         | `node bin/create-scaffold-hbar.js e2e-scenarios/sol-hardhat --yes --skip-install -s hardhat`                                     | `packages/hardhat` + `nextjs`         |
-| Custom flags    | `node bin/create-scaffold-hbar.js e2e-scenarios/custom --yes --skip-install -t blank -f nextjs-app --network mainnet` | Scaffold with defaults                    |
-| Install failure | `node bin/create-scaffold-hbar.js e2e-scenarios/with-install --yes -s hardhat`                                         | Exit code **5**, InstallError message |
+| Scenario        | Command                                                                                                               | What to check                         |
+| --------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| Help            | `node bin/create-scaffold-hbar.js --help`                                                                             | All options listed                    |
+| Default         | `node bin/create-scaffold-hbar.js e2e-scenarios/default --yes --skip-install`                                         | Scaffold + skip install               |
+| Solidity none   | `node bin/create-scaffold-hbar.js e2e-scenarios/sol-none --yes --skip-install -s none`                                | No "and submodules"                   |
+| Hardhat         | `node bin/create-scaffold-hbar.js e2e-scenarios/sol-hardhat --yes --skip-install -s hardhat`                          | `packages/hardhat` + `nextjs`         |
+| Custom flags    | `node bin/create-scaffold-hbar.js e2e-scenarios/custom --yes --skip-install -t blank -f nextjs-app --network mainnet` | Scaffold with defaults                |
+| Install failure | `node bin/create-scaffold-hbar.js e2e-scenarios/with-install --yes -s hardhat`                                        | Exit code **5**, InstallError message |
 
 Output goes under `e2e-scenarios/` (gitignored).
 
