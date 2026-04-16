@@ -10,7 +10,6 @@ function baseOptions(overrides: Partial<Options> = {}): Options {
     solidityFramework: SOLIDITY_FRAMEWORKS.FOUNDRY,
     template: "blank",
     frontend: "nextjs-app",
-    wallet: ["rainbowkit"],
     network: "testnet",
     packageManager: "yarn",
     ...overrides,

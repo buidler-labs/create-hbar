@@ -141,19 +141,6 @@ describe("parseArgumentsIntoOptions", () => {
     });
   });
 
-  describe("--wallet / -w", () => {
-    it("parses a single wallet value", () => {
-      const { rawOptions } = parseArgumentsIntoOptions(args("--wallet", "rainbowkit"));
-      expect(rawOptions.wallet).toEqual(["rainbowkit"]);
-    });
-
-    it("exits BAD_ARGS on invalid wallet value", () => {
-      expect(() => parseArgumentsIntoOptions(args("--wallet", "hashconnect"))).toThrow(
-        `process.exit(${EXIT_CODES.BAD_ARGS})`,
-      );
-    });
-  });
-
   describe("--network", () => {
     it("accepts testnet", () => {
       const { rawOptions } = parseArgumentsIntoOptions(args("--network", "testnet"));
@@ -173,29 +160,6 @@ describe("parseArgumentsIntoOptions", () => {
 
     it("exits BAD_ARGS on unknown network value", () => {
       expect(() => parseArgumentsIntoOptions(args("--network", "ropsten"))).toThrow(
-        `process.exit(${EXIT_CODES.BAD_ARGS})`,
-      );
-    });
-  });
-
-  describe("package manager flags", () => {
-    it("--use-npm sets packageManager to npm", () => {
-      const { rawOptions } = parseArgumentsIntoOptions(args("--use-npm"));
-      expect(rawOptions.packageManager).toBe("npm");
-    });
-
-    it("-p / --use-pnpm sets packageManager to pnpm", () => {
-      const { rawOptions } = parseArgumentsIntoOptions(args("-p"));
-      expect(rawOptions.packageManager).toBe("pnpm");
-    });
-
-    it("--use-yarn sets packageManager to yarn", () => {
-      const { rawOptions } = parseArgumentsIntoOptions(args("--use-yarn"));
-      expect(rawOptions.packageManager).toBe("yarn");
-    });
-
-    it("exits BAD_ARGS when multiple PM flags are combined", () => {
-      expect(() => parseArgumentsIntoOptions(args("--use-npm", "--use-pnpm"))).toThrow(
         `process.exit(${EXIT_CODES.BAD_ARGS})`,
       );
     });

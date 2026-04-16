@@ -69,11 +69,6 @@ export const SOLIDITY_FRAMEWORK_OPTIONS = [
   { value: "none", label: "None" },
 ] as const;
 
-/** Wallet connector (WalletConnect only). */
-export const WALLETS = [
-  { value: "rainbowkit", label: "Rainbowkit with burner wallet", hint: "via @rainbow-me/rainbowkit" },
-] as const;
-
 /** Target Hedera network options (testnet and mainnet only). */
 export const NETWORKS = [
   { value: "testnet", label: "Testnet", hint: "free testnet HBAR at portal.hedera.com" },
@@ -97,7 +92,6 @@ export const DEFAULT_OPTIONS = {
   project: "my-hedera-dapp",
   template: "blank",
   frontend: "nextjs-app",
-  wallet: ["rainbowkit"],
   network: "testnet",
   packageManager: "yarn",
   install: true,
