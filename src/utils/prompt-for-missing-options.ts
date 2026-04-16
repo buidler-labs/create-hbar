@@ -1,13 +1,6 @@
 import * as p from "@clack/prompts";
-import type { Frontend, Network, Options, RawOptions, SolidityFramework, Wallet } from "../types";
-import {
-  DEFAULT_OPTIONS,
-  EXIT_CODES,
-  FRONTENDS,
-  NETWORKS,
-  SOLIDITY_FRAMEWORK_OPTIONS,
-  WALLETS,
-} from "./consts";
+import type { Frontend, Network, Options, RawOptions, SolidityFramework } from "../types";
+import { DEFAULT_OPTIONS, EXIT_CODES, FRONTENDS, NETWORKS, SOLIDITY_FRAMEWORK_OPTIONS } from "./consts";
 import { fetchAvailableTemplates } from "./fetch-available-templates";
 import { validateNpmName } from "./validate-name";
 import { resolveTemplateCapabilities } from "./template-capabilities";
@@ -123,19 +116,6 @@ export async function promptForMissingOptions(rawOptions: RawOptions): Promise<O
     solidityFramework = selected === "none" ? null : selected;
   }
 
-  const wallet =
-    rawOptions.wallet ??
-    (acceptDefaults
-      ? ([...DEFAULT_OPTIONS.wallet] as Wallet[])
-      : resolvePromptValue(
-          (await p.multiselect({
-            message: "Which wallet connector(s)?",
-            options: WALLETS.map(w => ({ value: w.value, label: w.label, hint: w.hint })),
-            initialValues: [...DEFAULT_OPTIONS.wallet] as Wallet[],
-            required: true,
-          })) as Wallet[],
-        ));
-
   const network =
     rawOptions.network ??
     (acceptDefaults
@@ -166,7 +146,6 @@ export async function promptForMissingOptions(rawOptions: RawOptions): Promise<O
     project,
     template,
     frontend,
-    wallet,
     network,
     packageManager: "yarn",
     install: Boolean(install),

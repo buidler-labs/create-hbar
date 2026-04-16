@@ -1,12 +1,4 @@
-import type {
-  Args,
-  SolidityFramework,
-  RawOptions,
-  SolidityFrameworkChoices,
-  Network,
-  Frontend,
-  Wallet,
-} from "../types";
+import type { Args, SolidityFramework, RawOptions, SolidityFrameworkChoices, Network, Frontend } from "../types";
 import { Command } from "commander";
 import chalk from "chalk";
 import {
@@ -15,7 +7,6 @@ import {
   EXIT_CODES,
   FRONTENDS,
   SOLIDITY_FRAMEWORK_OPTIONS,
-  WALLETS,
   NETWORKS,
 } from "./consts";
 import { validateNpmName } from "./validate-name";
@@ -30,7 +21,6 @@ const VALID_SOLIDITY_FRAMEWORKS = SOLIDITY_FRAMEWORK_OPTIONS.map(s => s.value) a
   | SolidityFramework
   | "none"
 )[];
-const VALID_WALLETS = WALLETS.map(w => w.value) as readonly Wallet[];
 const VALID_NETWORKS = NETWORKS.map(n => n.value) as readonly Network[];
 const VALID_LOG_LEVELS = ["error", "warn", "info", "verbose", "debug"] as const;
 
@@ -58,7 +48,6 @@ function validateEnum<T extends string>(value: string, allowed: readonly T[], fl
   return lower;
 }
 
-
 /**
  * Parses CLI arguments using commander and returns raw (pre-prompt) options.
  */
@@ -77,7 +66,6 @@ export function parseArgumentsIntoOptions(rawArgs: Args): {
     .option("-t, --template <template>", "Starter template key or GitHub org/repo")
     .option("-f, --frontend <framework>", "Frontend framework (nextjs-app|none)")
     .option("-s, --solidity-framework <fw>", "Solidity framework (foundry|hardhat|none)")
-    .option("-w, --wallet <wallets>", "Wallet connector(s), comma-separated (walletconnect,metamask)")
     .option("--network <network>", "Target network (testnet|mainnet)")
     .option("--skip-install", "Skip dependency installation")
     .option("-y, --yes", "Accept all defaults and skip all prompts")
@@ -139,11 +127,6 @@ export function parseArgumentsIntoOptions(rawArgs: Args): {
 
   const logLevel = validateEnum(opts.logLevel as string, VALID_LOG_LEVELS, "log-level");
 
-  // ── Resolve wallet (comma-separated multiselect) ──────────────────────────
-  const wallet: Wallet[] | null = opts.wallet
-    ? (opts.wallet as string).split(",").map((w: string) => validateEnum(w.trim(), VALID_WALLETS, "wallet"))
-    : null;
-
   // ── --ci implies --yes ────────────────────────────────────────────────────
   const acceptDefaults = Boolean(opts.yes) || Boolean(opts.ci);
 
@@ -163,7 +146,6 @@ export function parseArgumentsIntoOptions(rawArgs: Args): {
     solidityFramework,
     template: acceptDefaults ? (template ?? DEFAULT_OPTIONS.template) : template,
     frontend,
-    wallet: acceptDefaults ? (wallet ?? [...DEFAULT_OPTIONS.wallet]) : wallet,
     network: acceptDefaults ? (network ?? DEFAULT_OPTIONS.network) : network,
     packageManager: "yarn",
   };

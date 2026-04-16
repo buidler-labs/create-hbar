@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { DEFAULT_OPTIONS, EXIT_CODES } from "../../src/utils/consts";
-import type { RawOptions, Wallet } from "../../src/types";
+import type { RawOptions } from "../../src/types";
 
 // ─── Mock @clack/prompts ─────────────────────────────────────────────────────
 // Track which prompts were actually invoked so we can assert that pre-supplied
@@ -8,14 +8,12 @@ import type { RawOptions, Wallet } from "../../src/types";
 
 const mockText = vi.fn();
 const mockSelect = vi.fn();
-const mockMultiselect = vi.fn();
 const mockConfirm = vi.fn();
 const mockCancel = vi.fn();
 
 vi.mock("@clack/prompts", () => ({
   text: (...args: unknown[]): unknown => mockText(...args),
   select: (...args: unknown[]): unknown => mockSelect(...args),
-  multiselect: (...args: unknown[]): unknown => mockMultiselect(...args),
   confirm: (...args: unknown[]): unknown => mockConfirm(...args),
   cancel: (...args: unknown[]): unknown => mockCancel(...args),
   isCancel: vi.fn().mockReturnValue(false),
@@ -23,7 +21,6 @@ vi.mock("@clack/prompts", () => ({
   outro: vi.fn(),
   log: { info: vi.fn(), success: vi.fn(), warn: vi.fn(), error: vi.fn(), message: vi.fn(), step: vi.fn() },
 }));
-
 
 vi.mock("../../src/utils/template-capabilities", () => ({
   resolveTemplateCapabilities: vi.fn().mockResolvedValue({
@@ -44,7 +41,6 @@ function makeRawOptions(overrides: Partial<RawOptions> = {}): RawOptions {
     template: null,
     frontend: null,
     solidityFramework: null,
-    wallet: null,
     network: null,
     packageManager: "yarn",
     install: true,
@@ -59,9 +55,6 @@ describe("promptForMissingOptions", () => {
     // Default mock return values simulate user accepting defaults
     mockText.mockResolvedValue(DEFAULT_OPTIONS.project);
     mockSelect.mockImplementation((opts: { initialValue?: unknown }) => Promise.resolve(opts.initialValue));
-    mockMultiselect.mockImplementation((opts: { initialValues?: unknown[] }) =>
-      Promise.resolve(opts.initialValues ?? []),
-    );
     mockConfirm.mockResolvedValue(true);
   });
 
@@ -91,11 +84,6 @@ describe("promptForMissingOptions", () => {
   it("skips solidityFramework prompt when pre-supplied", async () => {
     const result = await promptForMissingOptions(makeRawOptions({ solidityFramework: "hardhat" }));
     expect(result.solidityFramework).toBe("hardhat");
-  });
-
-  it("skips wallet prompt when wallet is pre-supplied", async () => {
-    const result = await promptForMissingOptions(makeRawOptions({ wallet: ["rainbowkit"] }));
-    expect(result.wallet).toEqual(["rainbowkit"]);
   });
 
   it("skips network prompt when network is pre-supplied", async () => {
@@ -147,13 +135,6 @@ describe("promptForMissingOptions", () => {
     expect(result.solidityFramework).toBe("foundry");
   });
 
-  it("prompts for wallet when not pre-supplied", async () => {
-    mockMultiselect.mockResolvedValue(["rainbowkit"] as Wallet[]);
-    const result = await promptForMissingOptions(makeRawOptions({ frontend: "nextjs-app" }));
-    expect(result.wallet).toEqual(["rainbowkit"]);
-    expect(mockMultiselect).toHaveBeenCalledTimes(1);
-  });
-
   // ── Pass-through fields ──────────────────────────────────────────────────
 
   // ── onCancel exits with 130 ──────────────────────────────────────────────
@@ -186,7 +167,6 @@ describe("promptForMissingOptions", () => {
       template: "defi-swap",
       frontend: "nextjs-app",
       solidityFramework: "foundry",
-      wallet: ["rainbowkit"],
       network: "mainnet",
       packageManager: "yarn",
       install: false,
@@ -199,7 +179,6 @@ describe("promptForMissingOptions", () => {
       template: "defi-swap",
       frontend: "nextjs-app",
       solidityFramework: "foundry",
-      wallet: ["rainbowkit"],
       network: "mainnet",
       packageManager: "yarn",
       install: false,
@@ -207,7 +186,6 @@ describe("promptForMissingOptions", () => {
 
     expect(mockText).not.toHaveBeenCalled();
     expect(mockSelect).not.toHaveBeenCalled();
-    expect(mockMultiselect).not.toHaveBeenCalled();
     expect(mockConfirm).not.toHaveBeenCalled();
   });
 });

@@ -19,9 +19,6 @@ export type Frontend = "nextjs-app" | "none";
  */
 export type SolidityFramework = "hardhat" | "foundry";
 
-/** Wallet connector (WalletConnect only). */
-export type Wallet = "rainbowkit";
-
 const EnvVarSchema = z.object({
   /** Environment variable key, e.g. HEDERA_ACCOUNT_ID */
   key: z.string().min(1),
@@ -132,8 +129,6 @@ type BaseOptions = {
   template: (Template | (string & {})) | null;
   /** Frontend framework (Next.js). */
   frontend: Frontend | null;
-  /** Selected wallet connector(s). */
-  wallet: Wallet[] | null;
   /** Target Hedera network. */
   network: Network | null;
   /** Package manager — always yarn. */
@@ -152,15 +147,13 @@ export type RawOptions = BaseOptions & {
  * (which can legitimately be null for "none").
  */
 export type Options = {
-  [Prop in keyof Omit<
-    BaseOptions,
-    "solidityFramework" | "template" | "frontend" | "wallet" | "network"
-  >]: NonNullable<BaseOptions[Prop]>;
+  [Prop in keyof Omit<BaseOptions, "solidityFramework" | "template" | "frontend" | "network">]: NonNullable<
+    BaseOptions[Prop]
+  >;
 } & {
   solidityFramework: SolidityFramework | null;
   template: Template | (string & {});
   frontend: Frontend;
-  wallet: Wallet[];
   network: Network;
   /**
    * From template manifest `outro.steps` after scaffold. When set, replaces the

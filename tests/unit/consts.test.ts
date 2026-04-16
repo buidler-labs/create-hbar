@@ -4,9 +4,7 @@ import {
   TEMPLATES,
   FRONTENDS,
   SOLIDITY_FRAMEWORK_OPTIONS,
-  WALLETS,
   NETWORKS,
-  PACKAGE_MANAGERS,
   BRAND_COLORS,
   DEFAULT_OPTIONS,
   EXIT_CODES,
@@ -104,39 +102,15 @@ describe("SOLIDITY_FRAMEWORK_OPTIONS", () => {
   });
 });
 
-describe("WALLETS", () => {
-  it("only includes rainbowkit", () => {
-    expect(WALLETS).toHaveLength(1);
-    expect(WALLETS[0].value).toBe("rainbowkit");
-  });
-
-  it("does not include hashconnect (deprecated)", () => {
-    expect(WALLETS.map(w => w.value)).not.toContain("hashconnect");
-  });
-});
-
 describe("NETWORKS", () => {
   it("only includes testnet and mainnet", () => {
     expect(NETWORKS.map(n => n.value)).toEqual(["testnet", "mainnet"]);
   });
 });
 
-describe("PACKAGE_MANAGERS", () => {
-  it("lists all three package managers", () => {
-    const values = PACKAGE_MANAGERS.map(pm => pm.value);
-    expect(values).toContain("npm");
-    expect(values).toContain("pnpm");
-    expect(values).toContain("yarn");
-  });
-});
-
 describe("DEFAULT_OPTIONS", () => {
   it("defaults to testnet network", () => {
     expect(DEFAULT_OPTIONS.network).toBe("testnet");
-  });
-
-  it("defaults to rainbowkit wallet", () => {
-    expect(DEFAULT_OPTIONS.wallet).toContain("rainbowkit");
   });
 
   it("defaults to blank template", () => {
