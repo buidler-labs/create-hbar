@@ -1,0 +1,53 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { resolveTemplateCapabilities } from "../../src/utils/template-capabilities";
+
+describe("resolveTemplateCapabilities", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it("loads capabilities from template.json for owner/repo#ref", async () => {
+    const manifestJson = {
+      name: "demo",
+      "create-scaffold-hbar": {
+        capabilities: {
+          frontend: ["nextjs-app"],
+          solidityFramework: ["none"],
+        },
+        defaults: {
+          frontend: "nextjs-app",
+          solidityFramework: "none",
+        },
+      },
+    };
+    const b64 = Buffer.from(JSON.stringify(manifestJson), "utf8").toString("base64");
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ content: b64, encoding: "base64" }),
+      }),
+    );
+
+    const caps = await resolveTemplateCapabilities("acme/demo#my-branch");
+
+    expect(fetch).toHaveBeenCalledWith(
+      "https://api.github.com/repos/acme/demo/contents/template.json?ref=my-branch",
+      expect.any(Object),
+    );
+    expect(caps.frontend).toEqual(["nextjs-app"]);
+    expect(caps.solidityFramework).toEqual(["none"]);
+    expect(caps.defaults).toEqual({ frontend: "nextjs-app", solidityFramework: "none" });
+  });
+
+  it("falls back to default capabilities when community fetch fails", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 404 }));
+
+    const caps = await resolveTemplateCapabilities("unknown/repo#missing");
+
+    expect(caps.frontend).toContain("nextjs-app");
+    expect(caps.solidityFramework.length).toBeGreaterThan(0);
+  });
+});

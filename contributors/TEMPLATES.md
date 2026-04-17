@@ -6,6 +6,7 @@ The CLI uses **giget** to download the chosen template. There are **no embedded 
 
 - **Template = branch name**: A built-in key (e.g. `blank`, `payments-scheduler`) is resolved to `https://github.com/buidler-labs/scaffold-hbar#templates/<branch>` (see `getTemplateSpec()` in `src/utils/fetch-available-templates.ts`). The `blank` key maps to branch `templates/blank-template`. Community templates use `org/repo` or `org/repo#branch` as-is.
 - **List from GitHub API**: In interactive mode, the "Which starter template?" prompt is filled by calling the GitHub API (matching-refs for `templates/*`). If the request fails (e.g. offline), a **fallback list** from `TEMPLATES_FALLBACK` in `src/utils/consts.ts` is used.
+- **Prompt constraints (`template.json`)**: Before prompting for frontend / Solidity framework, `resolveTemplateCapabilities()` loads `template.json` from GitHub (`contents/template.json` on the same ref giget will use). Built-in keys use branch `templates/<name>` on the default template repo; community templates use `owner/repo#ref` so capabilities and defaults match the branch you scaffold.
 - **Fetch**: `getTemplateSpec()` and `downloadTemplate(gh:spec)` in `src/tasks/copy-template-files.ts` download the template into a temp dir, then copy into the user's project directory.
 
 ## `template.json` — custom outro
