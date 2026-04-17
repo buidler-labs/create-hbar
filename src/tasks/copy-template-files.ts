@@ -34,28 +34,6 @@ const TEXT_FILE_EXTENSIONS = new Set([
 ]);
 
 /**
- * Creates a .npmrc file only for npm + Foundry to keep dependencies nested.
- * Hardhat/Next.js works better with npm's default hoisted strategy because some
- * third-party plugins rely on transitive dependency resolution.
- * @param targetDir - The target directory to create the .npmrc file in.
- * @param packageManager - The package manager to create the .npmrc file for.
- * @param solidityFramework - Selected solidity framework from prompts.
- */
-function createNpmrcForNpm(
-  targetDir: string,
-  packageManager: PackageManager,
-  solidityFramework: SolidityFramework | null | undefined,
-): void {
-  if (packageManager !== "npm" || solidityFramework !== SOLIDITY_FRAMEWORKS.FOUNDRY) return;
-
-  const npmrcPath = path.join(targetDir, ".npmrc");
-  // install-strategy=nested creates local node_modules in each package (npm 9.4+)
-  // This is more reliable than workspaces-hoist=false for Foundry compatibility
-  const content = "install-strategy=nested\n";
-  fs.writeFileSync(npmrcPath, content, "utf8");
-}
-
-/**
  * Removes husky-related scripts from package.json when using npm.
  * This prevents errors since we remove the .husky directory for npm projects.
  * @param targetDir - The target directory containing package.json.
@@ -478,8 +456,6 @@ export async function copyTemplateFiles(options: Options, targetDir: string): Pr
 
     // Remove husky scripts from package.json when using npm (husky is yarn-specific)
     removeHuskyScripts(targetDir, options.packageManager);
-
-    createNpmrcForNpm(targetDir, options.packageManager, options.solidityFramework);
 
     const outroSteps = processTemplateManifest(targetDir, options.project);
 
