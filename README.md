@@ -11,7 +11,6 @@ create-scaffold-hbar is an interactive CLI (like `create-next-app` or `create-re
 - **Starter templates** — Blank, HTS fungible, HTS NFT, HCS DAO, or DeFi swap (template = branch name; list from GitHub API with fallback)
 - **Frontend** — Next.js (App Router)
 - **Solidity** — Hardhat or Foundry (or none)
-- **Wallets** — RainbowKit wired for Hedera
 - **Networks** — Testnet or Mainnet (Hashio RPC + Mirror Node URLs)
 - **Non-interactive** — Use `--yes` or full flags for CI and scripts
 
@@ -75,8 +74,8 @@ Use this when you’re working on the create-scaffold-hbar CLI itself.
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/hashgraph/create-hbar.git
-cd create-hbar
+git clone https://github.com/hashgraph/create-scaffold-hbar.git
+cd create-scaffold-hbar
 yarn install
 ```
 
@@ -125,7 +124,7 @@ To avoid creating the project inside the repo, run from another directory:
 
 ```bash
 cd /tmp
-node /path/to/create-hbar/bin/create-scaffold-hbar.js --yes --skip-install my-hedera-dapp
+node /path/to/create-scaffold-hbar/bin/create-scaffold-hbar.js --yes --skip-install my-hedera-dapp
 ```
 
 ---
@@ -181,7 +180,7 @@ Output goes under `e2e-scenarios/` (gitignored).
 ## Project structure
 
 ```
-create-hbar/
+create-scaffold-hbar/
 ├── bin/create-scaffold-hbar.js    # CLI entry (points to dist/)
 ├── src/
 │   ├── cli.ts            # Main CLI flow

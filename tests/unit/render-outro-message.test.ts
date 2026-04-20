@@ -17,14 +17,16 @@ function baseOptions(overrides: Partial<Options> = {}): Options {
 }
 
 describe("expandOutroPlaceholders", () => {
-  const run = (s: string) => (s === "start" ? "yarn start" : `yarn ${s}`);
+  const run = (s: string) => `yarn ${s}`;
 
   it("replaces {run:script} tokens", () => {
-    expect(expandOutroPlaceholders("Run {run:start} now", run)).toBe("Run yarn start now");
+    expect(expandOutroPlaceholders("Run {run:next:start} now", run)).toBe("Run yarn next:start now");
   });
 
   it("supports multiple placeholders", () => {
-    expect(expandOutroPlaceholders("{run:chain} then {run:deploy}", run)).toBe("yarn chain then yarn deploy");
+    expect(expandOutroPlaceholders("{run:hardhat:chain} then {run:hardhat:deploy}", run)).toBe(
+      "yarn hardhat:chain then yarn hardhat:deploy",
+    );
   });
 });
 
@@ -45,14 +47,31 @@ describe("renderOutroMessage", () => {
     const log = vi.spyOn(console, "log").mockImplementation(() => {});
     renderOutroMessage(
       baseOptions({
-        outroSteps: ["+Start the frontend: {run:start}"],
+        outroSteps: ["+Start the frontend: {run:next:start}"],
         solidityFramework: null,
       }),
     );
     const text = log.mock.calls.map(c => c.join("")).join("\n");
     expect(text).not.toContain("Run locally:");
-    expect(text).toContain("yarn start");
+    expect(text).toContain("yarn next:start");
     expect(text).toContain("Congratulations!");
     expect(text).toContain("Thanks for using Scaffold-HBAR");
+  });
+
+  it("uses npm commands when npm package manager is selected", () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    renderOutroMessage(baseOptions({ packageManager: "npm" }));
+    const text = log.mock.calls.map(c => c.join("")).join("\n");
+    expect(text).toContain("npm run foundry:chain");
+    expect(text).toContain("npm run foundry:deploy -- --network"); // Should have -- separator for args
+    expect(text).not.toContain("yarn foundry:chain");
+  });
+
+  it("shows npm install instructions when install is skipped", () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    renderOutroMessage(baseOptions({ install: false, packageManager: "npm" }));
+    const text = log.mock.calls.map(c => c.join("")).join("\n");
+    expect(text).toContain("npm install --legacy-peer-deps && npm run format");
+    expect(text).not.toContain("yarn install");
   });
 });

@@ -1,6 +1,6 @@
 import { execa } from "execa";
 import { downloadTemplate } from "giget";
-import { Options, TemplateManifestSchema } from "../types";
+import { Options, TemplateManifestSchema, PackageManager } from "../types";
 import type { SolidityFramework } from "../types";
 import fs from "fs";
 import os from "os";
@@ -13,6 +13,138 @@ import { generateEnvExample } from "./generate-env-example";
 
 const TEMPLATE_MANIFEST_FILENAME = "template.json";
 const NEXTJS_PACKAGE = "nextjs";
+const NPM_PACKAGE_MANAGER_VERSION = "npm@10.0.0";
+const NEXTJS_PACKAGE_JSON_PATH = path.join("packages", NEXTJS_PACKAGE, "package.json");
+const HARDHAT_PACKAGE_JSON_PATH = path.join("packages", SOLIDITY_FRAMEWORKS.HARDHAT, "package.json");
+const TEXT_FILE_EXTENSIONS = new Set([
+  ".md",
+  ".txt",
+  ".json",
+  ".js",
+  ".cjs",
+  ".mjs",
+  ".ts",
+  ".mts",
+  ".cts",
+  ".yml",
+  ".yaml",
+  ".env",
+  ".example",
+  ".rc",
+]);
+
+/**
+ * Removes husky-related scripts from package.json when using npm.
+ * This prevents errors since we remove the .husky directory for npm projects.
+ * @param targetDir - The target directory containing package.json.
+ * @param packageManager - The package manager being used.
+ */
+function removeHuskyScripts(targetDir: string, packageManager: PackageManager): void {
+  if (packageManager !== "npm") return;
+
+  const pkgPath = path.join(targetDir, "package.json");
+  if (!fs.existsSync(pkgPath)) return;
+
+  try {
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8")) as Record<string, unknown>;
+
+    if (pkg.scripts && typeof pkg.scripts === "object") {
+      const scripts = pkg.scripts as Record<string, string>;
+
+      // Remove husky-related scripts that will fail without .husky directory
+      delete scripts["postinstall"]; // Usually "husky"
+      delete scripts["precommit"]; // Usually "lint-staged"
+      delete scripts["lint-staged"];
+    }
+
+    fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2), "utf8");
+  } catch (err) {
+    console.warn("Warning: Could not update package.json scripts:", err);
+  }
+}
+
+/**
+ * Transforms yarn-specific script commands to npm equivalents.
+ * Handles:
+ * - `yarn workspace @sh/<pkg> <script>` → `npm run <script> -w @sh/<pkg>`
+ * - `yarn <script>` → `npm run <script>` (for npm package manager)
+ * - Adds `--` to npm scripts that chain to other scripts, so arguments are forwarded
+ */
+function transformScriptForPackageManager(script: string, packageManager: PackageManager): string {
+  if (packageManager === "yarn") {
+    return script;
+  }
+
+  let transformed = script;
+
+  // Transform `yarn workspace @sh/<pkg> <script>` → `npm run <script> -w @sh/<pkg> --`
+  // The trailing `--` ensures arguments are forwarded through npm script chains
+  transformed = transformed.replace(/yarn\s+workspace\s+(@sh\/\w+)\s+(\S+)/g, "npm run $2 -w $1 --");
+
+  // Transform standalone `yarn <script>` (where <script> doesn't contain spaces or special chars)
+  // This matches patterns like `yarn format`, `yarn compile`, but not `yarn workspace ...`
+  // We need to be careful not to double-transform already transformed scripts
+  // Also add `--` to wrapper scripts so arguments forward properly
+  transformed = transformed.replace(/\byarn\s+([a-zA-Z0-9:_-]+)\b(?!\s*-w)/g, (match: string, scriptName: string) => {
+    // Check if this looks like a wrapper script (chaining to other scripts)
+    // These typically have names like "deploy", "verify", "foundry:*" that call other scripts
+    const isWrapperScript =
+      scriptName === "deploy" ||
+      scriptName === "verify" ||
+      scriptName === "chain" ||
+      scriptName === "compile" ||
+      scriptName === "fork" ||
+      scriptName === "test" ||
+      scriptName.startsWith("foundry:") ||
+      scriptName.startsWith("hardhat:") ||
+      scriptName.startsWith("next:");
+
+    if (isWrapperScript) {
+      return `npm run ${scriptName} --`;
+    }
+    return `npm run ${scriptName}`;
+  });
+
+  return transformed;
+}
+
+/** Normalizes scripts and packageManager metadata for npm in workspace packages. */
+function normalizeWorkspacePackagesForNpm(
+  targetDir: string,
+  selectedFramework: SolidityFramework | null | undefined,
+  frontend: Options["frontend"],
+  packageManager: PackageManager,
+): void {
+  if (packageManager !== "npm") return;
+
+  const workspacePackageJsonPaths: string[] = [];
+  if (selectedFramework === SOLIDITY_FRAMEWORKS.HARDHAT) {
+    workspacePackageJsonPaths.push(HARDHAT_PACKAGE_JSON_PATH);
+  }
+  if (frontend !== "none") {
+    workspacePackageJsonPaths.push(NEXTJS_PACKAGE_JSON_PATH);
+  }
+
+  for (const relPath of workspacePackageJsonPaths) {
+    const pkgPath = path.join(targetDir, relPath);
+    if (!fs.existsSync(pkgPath)) continue;
+
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8")) as Record<string, unknown>;
+    const scripts = pkg.scripts as Record<string, string> | undefined;
+    if (scripts && typeof scripts === "object") {
+      for (const key of Object.keys(scripts)) {
+        if (typeof scripts[key] !== "string") continue;
+        scripts[key] = transformScriptForPackageManager(scripts[key], packageManager);
+
+        // In npm mode, convert yarn binary invocations to npx.
+        scripts[key] = scripts[key].replace(/\bnpm run bgipfs\b/g, "npx bgipfs");
+      }
+    }
+
+    pkg.packageManager = NPM_PACKAGE_MANAGER_VERSION;
+    fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2), "utf8");
+  }
+}
 
 /**
  * If template.json exists in project root, parse it, run rename and env
@@ -74,6 +206,103 @@ function removeNextjsPackage(targetDir: string): void {
   }
 }
 
+/** Yarn-specific files/directories to remove when using npm */
+const YARN_SPECIFIC_PATHS = [
+  ".yarnrc.yml",
+  ".yarn",
+  "yarn.lock",
+  ".husky", // Husky hooks often contain yarn-specific commands
+];
+
+/**
+ * Removes Yarn-specific configuration files when using npm.
+ * This prevents conflicts between Yarn 3 configuration and npm.
+ */
+function removeYarnSpecificFiles(targetDir: string, packageManager: PackageManager): void {
+  if (packageManager !== "npm") {
+    return;
+  }
+
+  for (const relativePath of YARN_SPECIFIC_PATHS) {
+    const fullPath = path.join(targetDir, relativePath);
+    if (fs.existsSync(fullPath)) {
+      try {
+        const stat = fs.statSync(fullPath);
+        if (stat.isDirectory()) {
+          fs.rmSync(fullPath, { recursive: true, force: true });
+        } else {
+          fs.unlinkSync(fullPath);
+        }
+      } catch (err) {
+        // Log but don't fail - these files are optional cleanup
+        console.warn(`Warning: Could not remove ${relativePath}:`, err);
+      }
+    }
+  }
+}
+
+function replaceYarnReference(content: string): string {
+  let next = content;
+
+  // Keep URL/docs references coherent before generic command conversion.
+  next = next
+    .replace(/https:\/\/yarnpkg\.com\/?/gi, "https://www.npmjs.com/")
+    .replace(/\bYarn\b/g, "npm")
+    .replace(/\byarn\b/g, "npm");
+
+  next = next.replace(/\bnpm\s+workspace\s+(@sh\/[a-zA-Z0-9_-]+)\s+([a-zA-Z0-9:_-]+)\b/g, "npm run $2 -w $1 --");
+  next = next.replace(/\bnpm\s+install\s+--immutable\b/g, "npm install");
+  next = next.replace(/\bnpm\s+([a-zA-Z0-9:_-]+)\b/g, (match: string, scriptName: string) => {
+    if (scriptName === "run" || scriptName === "install" || scriptName === "exec" || scriptName === "ci") {
+      return match;
+    }
+    return `npm run ${scriptName}`;
+  });
+
+  return next;
+}
+
+function updateTextFilesForNpm(targetDir: string, packageManager: PackageManager): void {
+  if (packageManager !== "npm") return;
+
+  const walk = (dir: string): void => {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (entry.name === ".git" || entry.name === "node_modules") continue;
+        walk(fullPath);
+        continue;
+      }
+
+      const ext = path.extname(entry.name);
+      if (
+        !TEXT_FILE_EXTENSIONS.has(ext) &&
+        entry.name !== ".lintstagedrc.js" &&
+        entry.name !== ".gitignore" &&
+        entry.name !== ".prettierignore"
+      ) {
+        continue;
+      }
+
+      const original = fs.readFileSync(fullPath, "utf8");
+      let updated = replaceYarnReference(original);
+      if (entry.name === ".gitignore" || entry.name === ".prettierignore") {
+        updated = updated
+          .split("\n")
+          .filter(line => !line.includes(".yarn") && !line.includes(".yarnrc") && !line.includes("yarn.lock"))
+          .filter((line, index, lines) => !(line.trim() === "# npm" && lines[index + 1]?.trim() === ""))
+          .join("\n");
+      }
+      if (updated !== original) {
+        fs.writeFileSync(fullPath, updated, "utf8");
+      }
+    }
+  };
+
+  walk(targetDir);
+}
+
 /** Script keys that reference the Next.js package; removed when frontend is "none". */
 const NEXTJS_SCRIPT_KEYS = [
   "start",
@@ -91,11 +320,13 @@ const NEXTJS_SCRIPT_KEYS = [
 /**
  * Updates root package.json so workspaces and scripts only reference the
  * selected solidity framework and, when frontend is not "none", the nextjs package.
+ * Also transforms scripts for the selected package manager.
  */
 function filterRootPackageJson(
   targetDir: string,
   selectedFramework: SolidityFramework | null | undefined,
   frontend: Options["frontend"],
+  packageManager: PackageManager,
 ): void {
   const pkgPath = path.join(targetDir, "package.json");
   if (!fs.existsSync(pkgPath)) return;
@@ -130,11 +361,13 @@ function filterRootPackageJson(
         delete scripts[key];
       }
       if (selectedFramework === SOLIDITY_FRAMEWORKS.HARDHAT) {
-        scripts["format"] = "yarn hardhat:format";
-        scripts["lint"] = "yarn hardhat:lint";
+        scripts["format"] = packageManager === "npm" ? "npm run hardhat:format" : "yarn hardhat:format";
+        scripts["lint"] = packageManager === "npm" ? "npm run hardhat:lint" : "yarn hardhat:lint";
       } else if (selectedFramework === SOLIDITY_FRAMEWORKS.FOUNDRY) {
-        scripts["format"] = "yarn workspace @sh/foundry format";
-        scripts["lint"] = "yarn workspace @sh/foundry lint";
+        scripts["format"] =
+          packageManager === "npm" ? "npm run format -w @sh/foundry --" : "yarn workspace @sh/foundry format";
+        scripts["lint"] =
+          packageManager === "npm" ? "npm run lint -w @sh/foundry --" : "yarn workspace @sh/foundry lint";
       } else {
         delete scripts["format"];
         delete scripts["lint"];
@@ -170,11 +403,23 @@ function filterRootPackageJson(
           .trim();
       }
 
+      // Transform yarn commands to npm equivalents if needed
+      if (packageManager === "npm") {
+        scripts[key] = transformScriptForPackageManager(scripts[key], packageManager);
+      }
+
       if (scripts[key] === "") {
         delete scripts[key];
       }
     }
   }
+
+  // Update packageManager field to match selected package manager
+  if (packageManager === "npm") {
+    // Get npm version for the packageManager field
+    pkg.packageManager = NPM_PACKAGE_MANAGER_VERSION; // Will be updated with actual version during install
+  }
+  // For yarn, keep the template's packageManager field as-is
 
   fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2), "utf8");
 }
@@ -202,7 +447,15 @@ export async function copyTemplateFiles(options: Options, targetDir: string): Pr
     if (options.frontend === "none") {
       removeNextjsPackage(targetDir);
     }
-    filterRootPackageJson(targetDir, options.solidityFramework, options.frontend);
+    normalizeWorkspacePackagesForNpm(targetDir, options.solidityFramework, options.frontend, options.packageManager);
+    filterRootPackageJson(targetDir, options.solidityFramework, options.frontend, options.packageManager);
+
+    // Remove Yarn-specific files when using npm to prevent conflicts
+    removeYarnSpecificFiles(targetDir, options.packageManager);
+    updateTextFilesForNpm(targetDir, options.packageManager);
+
+    // Remove husky scripts from package.json when using npm (husky is yarn-specific)
+    removeHuskyScripts(targetDir, options.packageManager);
 
     const outroSteps = processTemplateManifest(targetDir, options.project);
 

@@ -2,8 +2,8 @@ import { z } from "zod";
 
 export type Args = string[];
 
-/** Package manager for the generated project. Yarn is the only supported PM. */
-export type PackageManager = "yarn";
+/** Package manager for the generated project. Supports yarn and npm. */
+export type PackageManager = "yarn" | "npm";
 
 /** Hedera network targets. */
 export type Network = "testnet" | "mainnet";
@@ -52,7 +52,7 @@ const TemplateOutroSchema = z.object({
   /**
    * Replaces the default contract/frontend-specific outro body (between the shared
    * header and footer). One string per line. Leading `+` renders bold.
-   * Use `{run:script}` for the yarn command (e.g. `{run:start}` → `yarn start`).
+   * Use `{run:script}` for the yarn command (e.g. `{run:next:start}` → `yarn next:start`).
    */
   steps: z.array(z.string().min(1)).min(1),
 });
@@ -131,8 +131,8 @@ type BaseOptions = {
   frontend: Frontend | null;
   /** Target Hedera network. */
   network: Network | null;
-  /** Package manager — always yarn. */
-  packageManager: PackageManager;
+  /** Package manager — yarn or npm. */
+  packageManager: PackageManager | null;
 };
 
 /** Raw options after flag parsing, before interactive prompts fill in nulls. */

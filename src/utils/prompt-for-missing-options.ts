@@ -1,9 +1,17 @@
 import * as p from "@clack/prompts";
-import type { Frontend, Network, Options, RawOptions, SolidityFramework } from "../types";
-import { DEFAULT_OPTIONS, EXIT_CODES, FRONTENDS, NETWORKS, SOLIDITY_FRAMEWORK_OPTIONS } from "./consts";
+import type { Frontend, Network, Options, RawOptions, SolidityFramework, PackageManager } from "../types";
+import {
+  DEFAULT_OPTIONS,
+  EXIT_CODES,
+  FRONTENDS,
+  NETWORKS,
+  SOLIDITY_FRAMEWORK_OPTIONS,
+  PACKAGE_MANAGERS,
+} from "./consts";
 import { fetchAvailableTemplates } from "./fetch-available-templates";
 import { validateNpmName } from "./validate-name";
 import { resolveTemplateCapabilities } from "./template-capabilities";
+import { detectPackageManager } from "./detect-pm";
 import { ValidationError } from "./errors";
 
 /**
@@ -142,12 +150,33 @@ export async function promptForMissingOptions(rawOptions: RawOptions): Promise<O
               })) as boolean,
             );
 
+  const packageManager: PackageManager =
+    rawOptions.packageManager ??
+    (acceptDefaults
+      ? DEFAULT_OPTIONS.packageManager
+      : resolvePromptValue(
+          (await p.select({
+            message: "Which package manager?",
+            options: PACKAGE_MANAGERS.map(pm => {
+              const option: { value: PackageManager; label: string; hint?: string } = {
+                value: pm.value,
+                label: pm.label,
+              };
+              if ("hint" in pm && pm.hint) {
+                option.hint = pm.hint;
+              }
+              return option;
+            }),
+            initialValue: detectPackageManager(),
+          })) as PackageManager,
+        ));
+
   return {
     project,
     template,
     frontend,
     network,
-    packageManager: "yarn",
+    packageManager,
     install: Boolean(install),
     solidityFramework,
   };
