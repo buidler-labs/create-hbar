@@ -18,18 +18,31 @@ function formatOutroLine(line: string): string {
 }
 
 /** Generates the run command based on package manager.
- * @param hasArgs - Whether additional arguments will be passed. If true for npm, adds `--` separator.
+ * @param hasArgs - When true, suffix with `--` so appended args reach the script (npm and pnpm).
  */
 function getRunCommand(packageManager: Options["packageManager"], script: string, hasArgs: boolean = false): string {
   if (packageManager === "npm") {
     // npm requires `--` separator to forward arguments through script chains
     return hasArgs ? `npm run ${script} --` : `npm run ${script}`;
   }
+  if (packageManager === "none") {
+    // pnpm forwards extra argv after `pnpm run <script> --` (parity with npm)
+    return hasArgs ? `pnpm run ${script} --` : `pnpm ${script}`;
+  }
   return `yarn ${script}`;
 }
 
 /** Generates the install and format command based on package manager. */
-function getInstallAndFormatCommand(packageManager: Options["packageManager"]): string {
+function getInstallAndFormatCommand(
+  packageManager: Options["packageManager"],
+  overrideInstallCommand?: string,
+): string {
+  if (overrideInstallCommand) {
+    return chalk.cyan(overrideInstallCommand);
+  }
+  if (packageManager === "none") {
+    return chalk.cyan("See template README for install command");
+  }
   if (packageManager === "npm") {
     // Use --legacy-peer-deps to handle peer dependency conflicts in Hedera packages
     return `${chalk.cyan("npm install --legacy-peer-deps")} && ${chalk.cyan("npm run format")}`;
@@ -72,7 +85,7 @@ function wrapText(text: string, maxWidth: number = 80): string {
 
 export function renderOutroMessage(options: Options) {
   const run = (script: string) => getRunCommand(options.packageManager, script);
-  const installAndFormat = getInstallAndFormatCommand(options.packageManager);
+  const installAndFormat = getInstallAndFormatCommand(options.packageManager, options.outroInstallCommand);
   const frameworkPrefix = options.solidityFramework ? `${options.solidityFramework}:` : "";
   const contractScript = (script: string) => `${frameworkPrefix}${script}`;
   const frontendStartScript = "next:start";
@@ -114,7 +127,7 @@ export function renderOutroMessage(options: Options) {
     options.solidityFramework === SOLIDITY_FRAMEWORKS.HARDHAT ||
     options.solidityFramework === SOLIDITY_FRAMEWORKS.FOUNDRY
   ) {
-    // For npm, use hasArgs=true when the command will be followed by arguments (needs `--` separator)
+    // npm and template "none" (pnpm) require `--` before forwarded script args
     const chainCmd = run(contractScript("chain"));
     const deployCmd = getRunCommand(options.packageManager, contractScript("deploy"), true);
     const testCmd = run(contractScript("test"));

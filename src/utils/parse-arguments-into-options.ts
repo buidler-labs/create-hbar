@@ -77,7 +77,7 @@ export function parseArgumentsIntoOptions(rawArgs: Args): {
     .option("-f, --frontend <framework>", "Frontend framework (nextjs-app|none)")
     .option("-s, --solidity-framework <fw>", "Solidity framework (foundry|hardhat|none)")
     .option("--network <network>", "Target network (testnet|mainnet)")
-    .option("--package-manager <pm>", "Package manager (yarn|npm)")
+    .option("--package-manager <pm>", "Package manager (yarn|npm|none)")
     .option("--skip-install", "Skip dependency installation")
     .option("--install-hedera-skills", "Install Hedera Skills marketplace after scaffold (default with --yes/--ci)")
     .option("--skip-hedera-skills", "Skip Hedera Skills install (overrides default when using --yes/--ci)")
@@ -181,7 +181,8 @@ export function parseArgumentsIntoOptions(rawArgs: Args): {
     template: acceptDefaults ? (template ?? DEFAULT_OPTIONS.template) : template,
     frontend,
     network: acceptDefaults ? (network ?? DEFAULT_OPTIONS.network) : network,
-    packageManager: acceptDefaults ? (packageManager ?? DEFAULT_OPTIONS.packageManager) : (packageManager ?? null),
+    // Keep null here so template capabilities can decide the package manager later.
+    packageManager: packageManager ?? null,
   };
 
   if (opts.ci) process.env.HBAR_CI = "1";
